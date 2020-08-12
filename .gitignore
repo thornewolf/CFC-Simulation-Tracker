@@ -1,4 +1,7 @@
 *.swp
+*.png
 env/
 __pycache__
 *.out
+*.log
+simtocont

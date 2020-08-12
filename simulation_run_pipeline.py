@@ -1,16 +1,24 @@
 # main.py
 import os
+import sys
 from subprocess import Popen, PIPE
 import time
 import threading
 import sqlite3
 import datetime
+import logging
 from typing import Union, List
 
-from db import getFirstQueuedRun
+from db import getFirstQueuedRun,addSimulationRunToDatabase
 
 from simulation_run_utils import SimulationRun
 from simulation_watcher import ProcessWatcher
+
+logging.basicConfig(filename='simulations.log',level=logging.INFO)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+ch.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+logging.getLogger().addHandler(ch)
 
 def generateSimulationStdin(run: SimulationRun):
     '''
@@ -43,15 +51,21 @@ def generateSimulationStdin(run: SimulationRun):
     # time step
     separated_stdin.append('1e-3') # TODO: Check appropriate time step
     # additional step count
-    separated_stdin.append('1000000') # One million
+    separated_stdin.append('1000') # One million
+    # Iterations between reports
+    separated_stdin.append('100')
     # Output File name
-    separated_stdin.append(f'Re{run.reynolds}-JetA{run.jet_amp}-JetF{run.jet_freq}')
+    file_name = f'Run{run.id}-Re{run.reynolds}-JetA{run.jet_amp}-JetF{run.jet_freq}'
+    separated_stdin.append(file_name)
     # Iterations between writes
-    separated_stdin.append('1000')
+    separated_stdin.append('500')
     # Say yes to continuing the simulation
     separated_stdin.append('y')
-
-    return '\n'.join(separated_stdin)
+    
+    final_stdin = '\n'.join(separated_stdin) + '\n'
+    print('The final stdin to pass to the binary is')
+    print(final_stdin)
+    return final_stdin,file_name
 
 
 def runExecutableWithStdIn(executable_path: Union[str, List[str]], stdin: str=''):
@@ -71,34 +85,45 @@ def runExecutableWithStdIn(executable_path: Union[str, List[str]], stdin: str=''
         p.stdin.flush() # This actually dumps the stdin
     return p
 
-def testRunBinaryWithStdIn():
+def pipeline(run):
     '''
-    Tests that running the binary is successful.
+    Runs the pipeline associated with an end to end simulation -> post processing run.
+
+    The pipeline will create and run 2 processes in sequence then return. The first process is the
+    simulation and the second process is the video generation.
+
+    Args:
+        run: The simulation run to process.
+
+    Returns:
+        None.
     '''
+
+    logger = logging.getLogger(f'AutomateSims.simulation_run_pipeline.Run{run.id}')
+    if run.id is None:
+        run_id = addSimulationRunToDatabase(run)
+        logger.info(f"Assigned {run.id} to current run")
+        logger = logging.getLogger(f'AutomateSims.simulation_run_pipeline.Run{run.id}')
+        run.id = run_id
+
+
+    logger.setLevel(logging.INFO)
+
+    logger.info(f"Beginnning pipeline run.")
+    
+    stdin, filename = generateSimulationStdin(run)
     root = os.getcwd()
-    BIN_NAME = 'a.out'
-    path = os.path.join(root, BIN_NAME)
-    p = runExecutableWithStdIn(path, "1 2 3 4 5 6 7 8 9 0\n")
-    ret = []
-    for line in p.stdout:
-        ret.append(line)
-    print(ret)
-
-def testGenerateSimulationStdin():
-    run1 = SimulationRun(None, "COMPLETED", datetime.datetime.now(), 2100, 299, 399, 120, 130, 0.001, 0.007, 1.8, 1e-3, 1e-5, 20)
-    print(generateSimulationStdin(run1))
-
-def pipeline():
-    run = SimulationRun(None, "COMPLETED", datetime.datetime.now(), 2100, 299, 399, 120, 130, 0.001, 0.007, 1.8, 1e-3, 1e-5, 20)
-    stdin = generateSimulationStdin(run)
-
-    root = os.getcwd()
-    BIN_NAME = 'a.out'
+    BIN_NAME = 'PFILONGMP.out'
     path = os.path.join(root, BIN_NAME)
 
     p = runExecutableWithStdIn(path, stdin)
-    ProcessWatcher(run, p)
+    ProcessWatcher(run, p, ["SIMULATING", "AWAITING_POST_PROCESSING"])
+    logger.info(f"Completed simulation step")
+    p = runExecutableWithStdIn(['python3.8', os.path.join(root, 'postProcessFake.py')], '')
+    ProcessWatcher(run, p, ["POST_PROCESSING", "COMPLETED"])
+    logger.info(f"Completed post processing step")
 
 
 if __name__ == '__main__':
-    pipeline()
+    run = SimulationRun(None, "QUEUED", datetime.datetime.now(), 200, 149, 245, 120, 130, 0.001, 0.007, 1.8, 1e-3, 1e-3, 10)
+    pipeline(run)

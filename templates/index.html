@@ -17,20 +17,20 @@ tr:nth-child(even) {
   background-color: #dddddd;
 }
 </style>
-<h1 style="margin: auto; text-align: center;">Research Run Statuses</h1>
+<div style="margin: auto; text-align: center;">
+<h1>Research Run Statuses</h1>
+<a href="/add">Add Run</a>
+</div>
 <table>
   <tr>
     <th>Status</th>
     <th>Run id</th>
     <th>Date created</th>
     <th>Reynolds Number</th>
-    <th>Mesh N</th>
-    <th>Mesh M</th>
     <th>Jet Start</th>
     <th>Jet End</th>
     <th>Jet Amplitude</th>
     <th>Jet Frequency</th>
-    <th>A-Tilde</th>
     <th>Timestep (dt)</th>
     <th>Tolerance</th>
     <th>BCs</th>
@@ -41,13 +41,10 @@ tr:nth-child(even) {
     <td>{{ row.id }}</td>
     <td>{{ row.date_created }}</td>
     <td>{{ row.reynolds }}</td>
-    <td>{{ row.mesh_n }}</td>
-    <td>{{ row.mesh_m }}</td>
     <td>{{ row.jet_start }}</td>
     <td>{{ row.jet_end }}</td>
     <td>{{ row.jet_amp }}</td>
     <td>{{ row.jet_freq }}</td>
-    <td>{{ row.a_tilde }}</td>
     <td>{{ row.dt }}</td>
     <td>{{ row.tolerance }}</td>
     <td>{{ row.bcs }}</td>

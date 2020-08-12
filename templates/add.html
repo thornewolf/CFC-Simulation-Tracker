@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<style>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+</style>
+<div style="margin: auto; text-align: center;">
+<h1>Add Run</h1>
+<form action='/add' method='POST' id='form' name='form'>
+    <textarea cols="80" rows="40" id='configuration_text' name='configuration_text'>
+{{ default_text }}
+    </textarea>
+    <br/>
+    <button>Add</button>
+</form>
+</div>
+
+</body>
+</html>
