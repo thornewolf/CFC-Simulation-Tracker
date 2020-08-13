@@ -8,7 +8,7 @@ class ProcessWatcher:
     begun and when it has ended.
     '''
     def __init__(self, run, run_process, stages):
-        self.logger = logging.getLogger(f"AutomateSims.simulation_watcher.Run{run.id}")
+        self.logger = logging.getLogger(f"AutomateSims.simulation_watcher.Run{run.config.id}")
         self.logger.setLevel(logging.INFO)
         self.run = run
         self.run_process = run_process
@@ -17,14 +17,9 @@ class ProcessWatcher:
         self.begin_watching()
 
     def begin_watching(self):
-        if self.run.id is None:
-            run_id = addSimulationRunToDatabase(self.run)
-            self.logger = logging.getLogger(f"AutomateSims.simulation_watcher.Run{self.run.id}")
-            self.logger.info(f"Assigned {run.id} to current run")
-            self.run.id = run_id
-        updateRunStatusById(self.run.id, self.stages[0])
+        updateRunStatusById(self.run.config.id, self.stages[0])
         for line in self.run_process.stdout:
             line = line.strip()
             self.log.append(line)
             self.logger.info(line)
-        updateRunStatusById(self.run.id, self.stages[1])
+        updateRunStatusById(self.run.config.id, self.stages[1])

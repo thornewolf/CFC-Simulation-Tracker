@@ -20,9 +20,16 @@ tr:nth-child(even) {
 <div style="margin: auto; text-align: center;">
 <h1>Add Run</h1>
 <form action='/add' method='POST' id='form' name='form'>
-    <textarea cols="80" rows="40" id='configuration_text' name='configuration_text'>
-{{ default_text }}
-    </textarea>
+  Run to continue: 
+  <select name="simtocont" id="simtocont">
+  {% for name,value in continue_simulation_options.items() %}
+    <option value="{{ name }}">{{ name }}</option>
+  {% endfor %}
+  </select>
+  <br/>
+  <textarea cols="80" rows="40" id='configuration_text' name='configuration_text'>
+    {{ default_text }}
+  </textarea>
     <br/>
     <button>Add</button>
 </form>

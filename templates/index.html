@@ -26,28 +26,26 @@ tr:nth-child(even) {
     <th>Status</th>
     <th>Run id</th>
     <th>Date created</th>
-    <th>Reynolds Number</th>
+    <th>Continuing Simulation</th>
     <th>Jet Start</th>
     <th>Jet End</th>
     <th>Jet Amplitude</th>
     <th>Jet Frequency</th>
     <th>Timestep (dt)</th>
-    <th>Tolerance</th>
-    <th>BCs</th>
+    <th>Additional Steps</th>
   </tr>
   {% for row in rows %}
   <tr>
-    <td>{{ row.status }}</td>
-    <td>{{ row.id }}</td>
-    <td>{{ row.date_created }}</td>
-    <td>{{ row.reynolds }}</td>
-    <td>{{ row.jet_start }}</td>
-    <td>{{ row.jet_end }}</td>
-    <td>{{ row.jet_amp }}</td>
-    <td>{{ row.jet_freq }}</td>
-    <td>{{ row.dt }}</td>
-    <td>{{ row.tolerance }}</td>
-    <td>{{ row.bcs }}</td>
+    <td>{{ row.config.status }}</td>
+    <td>{{ row.config.id }}</td>
+    <td>{{ row.config.date_created }}</td>
+    <td>{{ row.config.continued_run }}</td>
+    <td>{{ row.config.jet_start }}</td>
+    <td>{{ row.config.jet_end }}</td>
+    <td>{{ row.config.jet_amp }}</td>
+    <td>{{ row.config.jet_freq }}</td>
+    <td>{{ row.config.dt }}</td>
+    <td>{{ row.config.additional_steps }}</td>
   </tr>
   {% endfor %}
 </table>
