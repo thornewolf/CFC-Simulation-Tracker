@@ -31,7 +31,9 @@ def add():
         "jet_start": 120,
         "jet_end": 130,
         "jet_amp": 0.001,
-        "jet_freq": 0.007
+        "jet_freq": 0.007,
+        "additional_steps": 500,
+        "iterations_between_writes": 250
         }
     ''')
     return render_template('add.html', continue_simulation_options=get_baseline_simulations(), default_text=sample_run.json)

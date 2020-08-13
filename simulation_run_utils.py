@@ -37,8 +37,36 @@ class SimulationRun:
             'continued_run': self.config.continued_run,
             'additional_steps': self.config.additional_steps,
             'time_between_reports': self.config.time_between_reports,
-            'iterations_between_writes': self.config.iterations_between_writes
+            'iterations_between_writes': self.config.iterations_between_writes,
+            'completion_time': self.config.completion_time
         }, indent=1)
+
+    @property
+    def name(self):
+        ans = ''
+        if self.config.continued_run is not None:
+            ans = f'Run{self.config.id}_JetA{self.config.jet_amp}_JetF{self.config.jet_freq}'
+        else:
+            ans = f'Run{self.config.id}_JetA{self.config.jet_amp}_JetF{self.config.jet_freq}'
+        ans = ans.replace('.','p')
+        ans = ans.replace(' ','_')
+        return ans
+    
+    @property
+    def runtime(self):
+        if self.config.completion_time is None:
+            d = datetime.datetime.now() - self.datetime_created
+        else:
+            d = self.datetime_completed - self.datetime_created
+        return f'{d.total_seconds()//3600:.0f}h {(d.total_seconds()%3600)//60:.0f}m {d.total_seconds()%60:.0f}s'
+
+    @property
+    def datetime_created(self):
+        return datetime.datetime.fromisoformat(self.config.date_created)
+
+    @property
+    def datetime_completed(self):
+        return datetime.datetime.fromisoformat(self.config.completion_time)
 
 @dataclass
 class SimulationRunConfig:
@@ -60,6 +88,7 @@ class SimulationRunConfig:
     additional_steps: int = 1000
     time_between_reports: int = 100
     iterations_between_writes: int = 500
+    completion_time: datetime.datetime = None
 
 '''
 print(SimulationRun(None, "COMPLETED", datetime.datetime.now(), 2100, 299, 399, 120, 130, 0.001, 0.007, 1.8, 1e-3, 1e-5, 20, inline=True).config)

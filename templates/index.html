@@ -26,6 +26,7 @@ tr:nth-child(even) {
     <th>Status</th>
     <th>Run id</th>
     <th>Date created</th>
+    <th>Run time</th>
     <th>Continuing Simulation</th>
     <th>Jet Start</th>
     <th>Jet End</th>
@@ -34,11 +35,12 @@ tr:nth-child(even) {
     <th>Timestep (dt)</th>
     <th>Additional Steps</th>
   </tr>
-  {% for row in rows %}
+  {% for row in rows[::-1] %}
   <tr>
     <td>{{ row.config.status }}</td>
     <td>{{ row.config.id }}</td>
     <td>{{ row.config.date_created }}</td>
+    <td>{{ row.runtime }}</td>
     <td>{{ row.config.continued_run }}</td>
     <td>{{ row.config.jet_start }}</td>
     <td>{{ row.config.jet_end }}</td>

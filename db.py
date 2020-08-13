@@ -1,6 +1,7 @@
 import sqlite3
 import datetime
 import json
+import logging
 
 from simulation_run_utils import SimulationRun
 
@@ -40,6 +41,9 @@ def getSimulationRunById(id: int):
     return run
 
 def updateRunStatusById(id: int, new_status: str):
+    logger = logging.getLogger('AutomateSims.db.updateRunStatusById')
+    logger.info(f"Updating Run {id} with new status \n{new_status}")
+
     conn = sqlite3.connect(DB_NAME) 
     c = conn.cursor()
 
@@ -49,6 +53,17 @@ def updateRunStatusById(id: int, new_status: str):
     run.config.status = new_status
 
     c.execute('UPDATE jobs set status=?, configuration=? where id=?', (new_status, run.json, id))
+    conn.commit()
+    conn.close()
+
+def updateRunInDatabase(run: SimulationRun):
+    logger = logging.getLogger('AutomateSims.db.updateRunStatusById')
+    logger.info(f"Updating Run {run.config.id} with new configuration\n{run.json}")
+
+    conn = sqlite3.connect(DB_NAME) 
+    c = conn.cursor()
+
+    c.execute('UPDATE jobs set configuration=? where id=?', (run.json, run.config.id))
     conn.commit()
     conn.close()
 

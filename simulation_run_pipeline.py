@@ -11,7 +11,7 @@ import glob
 from subprocess import Popen, PIPE
 from typing import Union, List
 
-from db import getFirstQueuedRun,addSimulationRunToDatabase
+from db import getFirstQueuedRun,addSimulationRunToDatabase,updateRunInDatabase,getSimulationRunById
 
 from simulation_run_utils import SimulationRun
 from simulation_watcher import ProcessWatcher
@@ -24,13 +24,11 @@ ch.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
 logging.getLogger().addHandler(ch)
 
 def generateVisualizationStdin(run: SimulationRun):
-    file_name = f'Run{run.config.id}_Re{run.config.reynolds}_JetA{run.config.jet_amp}_JetF{run.config.jet_freq}'
-    file_name = file_name.replace('.','p')
+    file_name = run.name
 
     separated_stdin = []
     separated_stdin.append(f'"{file_name}P001"')
     file_count = len(glob.glob(f'{file_name}*'))
-    print('FILE COUNT', file_count)
     separated_stdin.append(f'{file_count-1}')
     final_stdin = '\n'.join(separated_stdin) + '\n'
     return final_stdin
@@ -40,11 +38,9 @@ def deleteLeftoverFiles(file_name: str):
     maching_files = [f for f in maching_files if '.avi' not in f]
     for f in maching_files:
         os.remove(f)
-    print('I DELETE')
-    print(maching_files)
 
 
-def generateSimulationStdin(run: SimulationRun):
+def generateSimulationStdin(run: SimulationRun, logger=None):
     '''
     Generates the required input to start a simulation.
 
@@ -75,14 +71,13 @@ def generateSimulationStdin(run: SimulationRun):
     separated_stdin.append(f'{run.config.jet_amp}')
     separated_stdin.append(f'{run.config.jet_freq}')
     # time step
-    separated_stdin.append(f'{run.config.dt}') # TODO: Check appropriate time step
+    separated_stdin.append(f'{run.config.dt}')
     # additional step count
-    separated_stdin.append(f'{run.config.additional_steps}') # One million
+    separated_stdin.append(f'{run.config.additional_steps}')
     # Iterations between reports
     separated_stdin.append(f'{run.config.time_between_reports}')
     # Output File name
-    file_name = f'Run{run.config.id}_Re{run.config.reynolds}_JetA{run.config.jet_amp}_JetF{run.config.jet_freq}.state'
-    file_name = file_name.replace('.','p')
+    file_name = run.name
     separated_stdin.append(file_name)
     # Iterations between writes
     separated_stdin.append(f'{run.config.iterations_between_writes}')
@@ -90,8 +85,8 @@ def generateSimulationStdin(run: SimulationRun):
     separated_stdin.append('y')
     
     final_stdin = '\n'.join(separated_stdin) + '\n'
-    print('The final stdin to pass to the binary is')
-    print(final_stdin)
+    if logger is not None:
+        logger.info(f'The final stdin to pass to the binary is\n{final_stdin}')
     return final_stdin,file_name
 
 
@@ -138,7 +133,7 @@ def pipeline(run):
 
     logger.info(f"Beginnning pipeline run.")
     
-    stdin, filename = generateSimulationStdin(run)
+    stdin, filename = generateSimulationStdin(run, logger=logger)
     root = os.getcwd()
     BIN_NAME = 'PFILONGMP.out'
     path = os.path.join(root, BIN_NAME)
@@ -151,8 +146,11 @@ def pipeline(run):
     images_to_video(filename)
     logger.info(f"Completed post processing step")
     deleteLeftoverFiles(filename)
+    logger.info(f"Removed leftover files for run")
 
-
-
-if __name__ == '__main__':
-    deleteLeftoverFiles('Run11_ReNone_JetA0p001_JetF0p007')
+    # Mark the run as completed.
+    # TODO: Move this somewhere where the logic makes sense.
+    run = getSimulationRunById(run.config.id)
+    run.config.completion_time = str(datetime.datetime.now())
+    updateRunInDatabase(run)
+    logger.info(f'Finished run {run.config.id}')
