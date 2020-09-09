@@ -26,7 +26,7 @@ MINU = 0;
 MAXU = 0;
 MINV = 0;
 MAXV = 0;
-while file_number <= (file_count + 1)  %start loop to keep opening files
+while file_number < (file_count)  %start loop to keep opening files
     
     
     inc_string=num2str(file_number);
