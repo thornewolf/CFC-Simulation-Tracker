@@ -71,7 +71,7 @@ def generateSimulationStdin(run: SimulationRun, logger=None):
     separated_stdin.append(f'{run.config.jet_amp}')
     separated_stdin.append(f'{run.config.jet_freq}')
     # time step
-    separated_stdin.append(f'{run.config.dt}')
+    # separated_stdin.append(f'{run.config.dt}')
     # additional step count
     separated_stdin.append(f'{run.config.additional_steps}')
     # Iterations between reports
