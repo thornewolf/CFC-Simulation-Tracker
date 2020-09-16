@@ -84,7 +84,7 @@ def generateSimulationStdin(run: SimulationRun, logger=None):
     # Say yes to continuing the simulation
     separated_stdin.append('y')
     
-    final_stdin = '\n'.join(separated_stdin) + '\n'
+    final_stdin = os.linesep.join(separated_stdin) + os.linesep
     if logger is not None:
         logger.info(f'The final stdin to pass to the binary is\n{final_stdin}')
     return final_stdin,file_name
