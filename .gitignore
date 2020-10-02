@@ -9,3 +9,4 @@ simtocont
 *.db
 *.ini
 Run?_Jet*
+*P[0-9]*
