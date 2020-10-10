@@ -164,7 +164,10 @@ while file_number <= (file_count + 1)
     % contour plot on V plot
     % fig = figure('position',[0,0,1920,1080], "visible", "off")
     fig = figure()
-    caxis([MINO MAXO])
+    #caxis([MINO MAXO])
+    disp(MINO)
+    disp(MAXO)
+    #caxis([-5 5])
     [C,h]=contourf(x(1:((Nx-1)/2+1),:),y(1:((Nx-1)/2+1),:),s((length(S)-1):((length(S)-1)+(Nx-1)/2),:),100);
     axis equal
     hold on
