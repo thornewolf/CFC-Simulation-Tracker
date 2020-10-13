@@ -24,17 +24,41 @@ ch.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
 logging.getLogger().addHandler(ch)
 
 def generateVisualizationStdin(run: SimulationRun):
+    '''
+    Generates the required input to start the conversion from output files to
+    images.
+
+    Args:
+        run: A SimulationRun object that contains the necessary information for
+        file naming and accessing.
+
+    Returns:
+        A String containing the input for the visualization code.
+    '''
     file_name = run.name
 
     separated_stdin = []
+    # What is the P001 that you want to start at?
     separated_stdin.append(f'"{file_name}P001"')
     file_count = len(glob.glob(f'{file_name}*'))
+    # How many files are there to work with?
+    # file_count-1 to intentionally ignore the base_name file.
     separated_stdin.append(f'{file_count-1}')
     final_stdin = '\n'.join(separated_stdin) + '\n'
     return final_stdin
 
-def deleteLeftoverFiles(file_name: str):
-    maching_files = glob.glob(f'{file_name}*')
+def deleteLeftoverFiles(prefix: str):
+    '''
+    Removes all files that match the given prefix
+
+    Args:
+        prefix: The prefix to do a search on.
+
+    Returns:
+        None
+    '''
+
+    maching_files = glob.glob(f'{prefix}*')
     maching_files = [f for f in maching_files if '.avi' not in f]
     for f in maching_files:
         os.remove(f)

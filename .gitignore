@@ -10,3 +10,4 @@ simtocont
 *.ini
 Run?_Jet*
 *P[0-9]*
+octave-workspace
