@@ -6,6 +6,7 @@ __pycache__
 *.log
 simtocont
 *.avi
+*.jpg
 *.db
 *.ini
 Run?_Jet*
