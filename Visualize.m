@@ -26,22 +26,70 @@ MINU = 0;
 MAXU = 0;
 MINV = 0;
 MAXV = 0;
-
-matfile = strcat(file_base_name,'_x','.mat');
-if exist(matfile)
-    % Mat file exists -> backfill has been run on these files
-    mat = load(matfile,'backfilled');
-    totalminu = mat.backfilled(length(mat.backfilled),15);
-    totalmaxu = mat.backfilled(length(mat.backfilled),16);
-    totalminv = mat.backfilled(length(mat.backfilled),17);
-    totalmaxv = mat.backfilled(length(mat.backfilled),18);
-else
-    % File does not exist.
-    tmp = load(file_base_name);
-    totalminu = tmp(length(tmp),15);
-    totalmaxu = tmp(length(tmp),16);
-    totalminv = tmp(length(tmp),17);
-    totalmaxv = tmp(length(tmp),18);
+while file_number <= (file_count + 1)  %start loop to keep opening files
+    
+    
+    inc_string=num2str(file_number);
+    
+    % Handles the naming of the output files.
+    fp=length(inc_string);
+    if fp==1
+        file(fill)=inc_string(1);
+    elseif fp==2
+        file(fill)=inc_string(2);
+        file(fill-1)=inc_string(1);
+    elseif fp==3
+        file(fill)=inc_string(3);
+        file(fill-1)=inc_string(2);
+        file(fill-2)=inc_string(1);
+    end
+    
+    if file_number > file_count
+        file = file_base_name;
+    end
+    
+    disp('about to load')
+    tmp = load(file);
+    disp('loaded')
+    Nx = tmp(length(tmp)-1,1);
+    My = tmp(length(tmp)-1,2);
+    min_o = min(min(tmp(1:My, 1:Nx)));
+    max_o = max(max(tmp(1:My, 1:Nx)));
+    min_p = min(min(tmp(My+1:2*My, 1:Nx)));
+    max_p = min(min(tmp(My+1:2*My, 1:Nx)));
+    min_u = min(min(tmp(2*My+1:3*My, 1:Nx)));
+    max_u = max(max(tmp(2*My+1:3*My, 1:Nx)));
+    min_v = min(min(tmp(3*My+1:4*My, 1:Nx)));
+    max_v = max(max(tmp(3*My+1:4*My, 1:Nx)));
+    if min_o < MINO
+        MINO = min_o;
+    end
+    if min_p < MINP
+        MINP = min_p;
+    end
+    if min_u < MINU
+        MINU = min_u;
+    end
+    if min_v < MINV
+        MINV = min_v;
+    end
+    if max_o > MAXO
+        MAXO = max_o;
+    end
+    if max_p > MAXP
+        MAXP = max_p;
+    end
+    if max_u > MAXU
+        MAXU = max_u;
+    end
+    if max_v > MAXV
+        MAXV = max_v;
+    end
+    
+    clear(file)
+    clear tmp
+    
+    file_number = file_number + 1;
 end
 
 
@@ -164,10 +212,7 @@ while file_number <= (file_count + 1)
     % contour plot on V plot
     % fig = figure('position',[0,0,1920,1080], "visible", "off")
     fig = figure()
-    #caxis([MINO MAXO])
-    disp(MINO)
-    disp(MAXO)
-    #caxis([-5 5])
+    caxis([MINO MAXO])
     [C,h]=contourf(x(1:((Nx-1)/2+1),:),y(1:((Nx-1)/2+1),:),s((length(S)-1):((length(S)-1)+(Nx-1)/2),:),100);
     axis equal
     hold on
@@ -182,13 +227,6 @@ while file_number <= (file_count + 1)
 
     colorbar
     axis([-2 16 -2 8])
-    
-    max_mag_x = max(abs([totalminu,totalmaxu]));
-    max_mag_y = max(abs([totalminv,totalmaxv]));
-    colorbar_limit = sqrt(max_mag_x^2 + max_mag_y^2);
-    disp(colorbar_limit)
-    caxis([-colorbar_limit*2,colorbar_limit*2]);
-    
     saveas(fig, char(image_name))
     %F = getframe(gcf);
     %[X, map] = frame2im(F);
