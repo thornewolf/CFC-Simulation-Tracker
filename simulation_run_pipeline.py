@@ -27,7 +27,7 @@ def generateVisualizationStdin(run: SimulationRun):
     file_name = run.name
 
     separated_stdin = []
-    separated_stdin.append(f'"{file_name}P001"')
+    separated_stdin.append(f'{file_name}P001')
     file_count = len(glob.glob(f'{file_name}*'))
     separated_stdin.append(f'{file_count-1}')
     final_stdin = '\n'.join(separated_stdin) + '\n'
@@ -135,13 +135,13 @@ def pipeline(run):
     
     stdin, filename = generateSimulationStdin(run, logger=logger)
     root = os.getcwd()
-    BIN_NAME = 'PFILONGMP.out'
+    BIN_NAME = 'PFI_fast.out'
     path = os.path.join(root, BIN_NAME)
 
     p = runExecutableWithStdIn(path, stdin)
     ProcessWatcher(run, p, ["SIMULATING", "AWAITING_POST_PROCESSING"])
     logger.info(f"Completed simulation step")
-    p = runExecutableWithStdIn(['octave-cli', os.path.join(root, f'Visualize.m')], generateVisualizationStdin(run))
+    p = runExecutableWithStdIn(['octave-cli', os.path.join(root, f'Visualize_fast.m')], generateVisualizationStdin(run))
     ProcessWatcher(run, p, ["POST_PROCESSING", "COMPLETED"])
     images_to_video(filename)
     logger.info(f"Completed post processing step")

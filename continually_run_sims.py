@@ -8,7 +8,7 @@ def main():
     jobs = []
     while True:
         next_job = getFirstQueuedRun()
-        while next_job is not None and len(jobs) < 1:
+        while next_job is not None and len(jobs) < 2:
             print('next job is', next_job)
             # Kick off a simulation pipeline that can cross CPU cores.
             p = multiprocessing.Process(target=simulation_pipeline, args=(next_job,))

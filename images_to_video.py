@@ -10,8 +10,10 @@ def images_to_video(base_name: str):
     root = os.getcwd()
     matching_files = glob.glob(f'{base_name}*.jpg')
     logger.info(f'Found {len(matching_files)} files corresponding to {base_name}.\n e.g. {matching_files[:1]}')
-    for filename in matching_files:
-        print(filename)
+    matching_file_numbers = [int(f.split('_')[-1].replace('.jpg','')) for f in matching_files]
+    ordered_files = sorted(zip(matching_file_numbers, matching_files))
+    for i,filename in ordered_files:
+        print(i, filename)
         path = os.path.join(root,filename)
         img = cv2.imread(path)
         print(path)
@@ -26,3 +28,7 @@ def images_to_video(base_name: str):
         out.write(img_array[i])
     print(out)
     out.release()
+
+if __name__ == '__main__':
+	name = 'Run41_JetA0p01_JetF0p1'
+	images_to_video(name)
