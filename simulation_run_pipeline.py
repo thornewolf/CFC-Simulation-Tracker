@@ -28,11 +28,9 @@ def generateVisualizationStdin(run: SimulationRun):
     '''
     Generates the required input to start the conversion from output files to
     images.
-
     Args:
         run: A SimulationRun object that contains the necessary information for
         file naming and accessing.
-
     Returns:
         A String containing the input for the visualization code.
     '''
@@ -51,10 +49,8 @@ def generateVisualizationStdin(run: SimulationRun):
 def deleteLeftoverFiles(prefix: str):
     '''
     Removes all files that match the given prefix
-
     Args:
         prefix: The prefix to do a search on.
-
     Returns:
         None
     '''
@@ -68,13 +64,10 @@ def deleteLeftoverFiles(prefix: str):
 def generateSimulationStdin(run: SimulationRun, logger=None):
     '''
     Generates the required input to start a simulation.
-
     Assumes that the simulation is being continued from some central state and the desired
     parameter to change is the jet.
-
     Args:
         run:  A SimulationRun representing the desired configuration
-
     Returns:
         A String representing the stdin required to start a simulation with that configuration.
         13 lines in total.
@@ -118,7 +111,6 @@ def generateSimulationStdin(run: SimulationRun, logger=None):
 def runExecutableWithStdIn(executable_path: Union[str, List[str]], stdin: str=''):
     '''
     Runs the specified executable then passes stdin to it.
-
     Args:
         executable_path: the path to the executable to run
         stdin: the stdin to pass
@@ -135,13 +127,10 @@ def runExecutableWithStdIn(executable_path: Union[str, List[str]], stdin: str=''
 def pipeline(run):
     '''
     Runs the pipeline associated with an end to end simulation -> post processing run.
-
     The pipeline will create and run 2 processes in sequence then return. The first process is the
     simulation and the second process is the video generation.
-
     Args:
         run: The simulation run to process.
-
     Returns:
         None.
     '''
@@ -152,6 +141,7 @@ def pipeline(run):
         logger.info(f"Assigned {run.config.id} to current run")
         logger = logging.getLogger(f'AutomateSims.simulation_run_pipeline.Run{run.config.id}')
         run.config.id = run_id
+
 
     logger.setLevel(logging.INFO)
 
@@ -165,8 +155,7 @@ def pipeline(run):
     p = runExecutableWithStdIn(path, stdin)
     ProcessWatcher(run, p, ["SIMULATING", "AWAITING_POST_PROCESSING"])
     logger.info(f"Completed simulation step")
-
-    # Run multiple instances of viz code at once
+    
     ps = []
     vizInputs = generateVisualizationStdin(run)
     for i in range(20):
