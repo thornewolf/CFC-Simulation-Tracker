@@ -8,6 +8,7 @@ import sqlite3
 import datetime
 import logging
 import glob
+import multiprocessing as mp
 from subprocess import Popen, PIPE
 from typing import Union, List
 
@@ -27,7 +28,7 @@ def generateVisualizationStdin(run: SimulationRun):
     '''
     Generates the required input to start the conversion from output files to
     images.
-
+    
     Args:
         run: A SimulationRun object that contains the necessary information for
         file naming and accessing.
@@ -67,13 +68,10 @@ def deleteLeftoverFiles(prefix: str):
 def generateSimulationStdin(run: SimulationRun, logger=None):
     '''
     Generates the required input to start a simulation.
-
     Assumes that the simulation is being continued from some central state and the desired
     parameter to change is the jet.
-
     Args:
         run:  A SimulationRun representing the desired configuration
-
     Returns:
         A String representing the stdin required to start a simulation with that configuration.
         13 lines in total.
@@ -117,7 +115,6 @@ def generateSimulationStdin(run: SimulationRun, logger=None):
 def runExecutableWithStdIn(executable_path: Union[str, List[str]], stdin: str=''):
     '''
     Runs the specified executable then passes stdin to it.
-
     Args:
         executable_path: the path to the executable to run
         stdin: the stdin to pass
@@ -134,13 +131,10 @@ def runExecutableWithStdIn(executable_path: Union[str, List[str]], stdin: str=''
 def pipeline(run):
     '''
     Runs the pipeline associated with an end to end simulation -> post processing run.
-
     The pipeline will create and run 2 processes in sequence then return. The first process is the
     simulation and the second process is the video generation.
-
     Args:
         run: The simulation run to process.
-
     Returns:
         None.
     '''
@@ -165,12 +159,22 @@ def pipeline(run):
     p = runExecutableWithStdIn(path, stdin)
     ProcessWatcher(run, p, ["SIMULATING", "AWAITING_POST_PROCESSING"])
     logger.info(f"Completed simulation step")
-    p = runExecutableWithStdIn(['octave-cli', os.path.join(root, f'Visualize_fast.m')], generateVisualizationStdin(run))
-    ProcessWatcher(run, p, ["POST_PROCESSING", "COMPLETED"])
+    
+    ps = []
+    vizInputs = generateVisualizationStdin(run)
+    for i in range(20):
+        p = mp.Process(target=runExecutableWithStdIn, args=(['octave-cli', os.path.join(root, f'Visualize_multiprocess.m')], vizInputs)) 
+        ps.append(p)
+        p.start()
+
+    for p in ps:
+        ProcessWatcher(run, p, ["POST_PROCESSING", "COMPLETED"])
+
     images_to_video(filename)
     logger.info(f"Completed post processing step")
     deleteLeftoverFiles(filename)
     logger.info(f"Removed leftover files for run")
+    ps.clear()
 
     # Mark the run as completed.
     # TODO: Move this somewhere where the logic makes sense.
