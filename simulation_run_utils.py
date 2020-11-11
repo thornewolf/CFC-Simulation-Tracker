@@ -3,7 +3,27 @@ import json
 import datetime
 
 class SimulationRun:
+    '''
+    A large dataclass designed to assist in moving all information pertaining
+    to a single simulation run around.  Offsers a large set of utility
+    functions for ease of development.
+    '''
     def __init__(self, *args, inline=False, as_json=None, **kwargs):
+        '''
+        Initialize the class.
+
+        Args:
+            *args: inline arguments to be passed directly into a
+            SimulationRunConfig object.
+            inline: indicate whether *args is fully complete and should be
+            passed down to SimulationRunConfig.
+            as_json: An optional json String to load the configuration for
+            the run from.
+            **kwargs: keywork arguments to be passed to SimulationRunConfig.
+
+        Returns:
+            Implicitly returns the class.
+        '''
         if inline:
             self.config = SimulationRunConfig(*args, **kwargs)
         elif as_json:
@@ -43,6 +63,9 @@ class SimulationRun:
 
     @property
     def name(self):
+        '''
+        Allows for runs to handle the formatting in which they should be named.
+        '''
         ans = ''
         if self.config.continued_run is not None:
             ans = f'Run{self.config.id}_JetA{self.config.jet_amp}_JetF{self.config.jet_freq}'
@@ -54,6 +77,11 @@ class SimulationRun:
     
     @property
     def runtime(self):
+        '''
+        Calculate total runtime
+        '''
+        # TODO: time since creation is not runtime. It should be time since
+        # start. Need additional data within the config.
         if self.config.completion_time is None:
             d = datetime.datetime.now() - self.datetime_created
         else:

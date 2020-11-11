@@ -28,9 +28,11 @@ def generateVisualizationStdin(run: SimulationRun):
     '''
     Generates the required input to start the conversion from output files to
     images.
+    
     Args:
         run: A SimulationRun object that contains the necessary information for
         file naming and accessing.
+
     Returns:
         A String containing the input for the visualization code.
     '''
@@ -49,8 +51,10 @@ def generateVisualizationStdin(run: SimulationRun):
 def deleteLeftoverFiles(prefix: str):
     '''
     Removes all files that match the given prefix
+
     Args:
         prefix: The prefix to do a search on.
+
     Returns:
         None
     '''
@@ -165,6 +169,7 @@ def pipeline(run):
 
     for p in ps:
         ProcessWatcher(run, p, ["POST_PROCESSING", "COMPLETED"])
+
     images_to_video(filename)
     logger.info(f"Completed post processing step")
     deleteLeftoverFiles(filename)

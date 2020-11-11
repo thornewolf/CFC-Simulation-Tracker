@@ -8,6 +8,16 @@ class ProcessWatcher:
     begun and when it has ended.
     '''
     def __init__(self, run, run_process, stages):
+        '''
+        Initialize the class.
+
+        Args:
+            self: The class itself.
+            run: The run that is associated with the process.
+            run_proecess: The process that is being tracked and observed.
+            stages: List[String] What to label the mid-process and post-process
+            states.
+        '''
         self.logger = logging.getLogger(f"AutomateSims.simulation_watcher.Run{run.config.id}")
         self.logger.setLevel(logging.INFO)
         self.run = run

@@ -257,12 +257,16 @@ endfunction
 file_number = 1;
 while file_number <= (file_count + 1)
     % determine name of image that corresponds with output file
-    image_name = [file_base_name '_' num2str(file_number) '.jpg'];
+    rand_file_number = randi(file_count)
+    disp('Starting (iteration, file_number)')
+    disp(file_number)
+    disp(rand_file_number)
+    image_name = [file_base_name '_' num2str(rand_file_number) '.jpg'];
     if exist(image_name,'file') == 2 % if image name already exists, program will end
         file_number = file_number + 1;
         continue
     end
-    file = nextFile(file_base_name,file_number,file_count); 
+    file = nextFile(file_base_name,rand_file_number,file_count); 
     disp('about to load file');
     s = load(file);
     disp('loaded file');
