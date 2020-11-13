@@ -117,12 +117,3 @@ class SimulationRunConfig:
     time_between_reports: int = 100
     iterations_between_writes: int = 500
     completion_time: datetime.datetime = None
-
-'''
-print(SimulationRun(None, "COMPLETED", datetime.datetime.now(), 2100, 299, 399, 120, 130, 0.001, 0.007, 1.8, 1e-3, 1e-5, 20, inline=True).config)
-print(SimulationRun(inline=True).config)
-run = SimulationRun(None, "COMPLETED", datetime.datetime.now(), 2100, 299, 399, 120, 130, 0.001, 0.007, 1.8, 1e-3, 1e-5, 20, inline=True)
-print(run.json)
-print(SimulationRun(as_json=run.json).json)
-print(SimulationRun(as_json='{"jet_end": 10}').json)
-'''
