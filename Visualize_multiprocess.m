@@ -1,3 +1,8 @@
+% Image output naming scheme:
+% '_A' corresponds to contour lines included
+% '_B' corresponds to no contour lines included
+% '_C' corresponds to the quiver plot.
+% example: PfR21A1p90x8Y16n03_1_A
 % Visualization code to generate images/frames of velocity flow fields based on output data 
 % from ParabolaFlow
 % 
@@ -219,9 +224,78 @@ function [x,y,bx,by,r,mu,eta,S] = generateVectors(Nx,My,s)
     r = sqrt(x.^2+y.^2); % Vector transform from parabolic to Cartesian
 endfunction
 
-function createPlot(x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_name,image_name)
+
+function createPlotA(x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_name,image_name)
     % Plots velocity flow field over airfoil geometry, includes a colorbar and contour lines
-    % and saves the figure and a .jpg that can be used as a frame for video
+    % and saves the figure and a .jpg that can be used as a frame for video.
+    % 
+    % Args: 
+    %   x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_name,image_name
+    % 
+    % Return:
+    %   none. 
+    
+    % contour plot on V plot
+    fig = figure('position',[0,0,1280,720]); % figure will have resulution of 720p
+    [c,h]=contourf(x(1:((Nx-1)/2+1),:),y(1:((Nx-1)/2+1),:),s((length(S)-1):((length(S)-1)+(Nx-1)/2),:),100,'LineStyle', 'none');
+    axis equal
+    hold on
+    plot(bx,by,'k','linewidth',1)
+    if (S(length(S)-1,6) < Nx) && (S(length(S)-1,6) < Nx)
+        plot(bx(jet_range_index),by(jet_range_index),'r-','linewidth',2) 
+    end
+    axis([-2 48 -4 12]) % V plot
+    
+    contour(x(1:((Nx-1)/2+1),:),y(1:((Nx-1)/2+1),:),s((length(S)-1):((length(S)-1)+(Nx-1)/2),:),25,'LineStyle', '-','LineColor','black');
+    
+    plot(bx,by,'k','linewidth',1);
+    colorbar;
+    colormap(jet); % sets color range of plot 
+    axis([-2 16 -2 8]);
+    [cbmin,cbmax] = colorbarLimits2(file_count,file_base_name);
+    caxis([cbmin,cbmax]);
+    imgName = strcat(image_name(1:end-4),'_A','.jpg');
+    saveas(fig, char(imgName)) % save figure as a .jpg 
+end
+
+function createPlotB(x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_name,image_name)
+    % Plots velocity flow field over airfoil geometry, includes a colorbar
+    % and saves the figure and a .jpg that can be used as a frame for video. There are
+    % no contour lines included.
+    % 
+    % Args: 
+    %   x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_name,image_name
+    % 
+    % Return:
+    %   none. 
+    
+    % contour plot on V plot
+    fig = figure('position',[0,0,1280,720]); % figure will have resulution of 720p
+    
+    [C,h]=contourf(x(1:((Nx-1)/2+1),:),y(1:((Nx-1)/2+1),:),s((length(S)-1):((length(S)-1)+(Nx-1)/2),:),100,'LineStyle', 'none');
+    axis equal
+    hold on
+    plot(bx,by,'k','linewidth',1)
+    if (S(length(S)-1,6) < Nx) && (S(length(S)-1,6) < Nx)
+        plot(bx(jet_range_index),by(jet_range_index),'r-','linewidth',2) 
+    end
+    axis([-2 48 -4 12]) % V plot
+
+    plot(bx,by,'k','linewidth',1);
+    colorbar;
+    colormap(jet); % sets color range of plot 
+    axis([-2 16 -2 8]);
+    [cbmin,cbmax] = colorbarLimits2(file_count,file_base_name);
+    caxis([cbmin,cbmax]);
+
+    imgName = strcat(image_name(1:end-4),'_B','.jpg');
+    saveas(fig, char(imgName)) % save figure as a .jpg 
+end
+
+function createPlotC(x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_name,image_name)
+    % Plots velocity flow field over airfoil geometry, includes a colorbar
+    % and saves the figure and a .jpg that can be used as a frame for video. A quiver plot
+    % is also plotted over the contour plot. 
     % 
     % Args: 
     %   x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_name,image_name
@@ -231,26 +305,36 @@ function createPlot(x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_nam
 
     % contour plot on V plot
     fig = figure('position',[0,0,1280,720]); % figure will have resulution of 720p
-    % fig = figure();
     
-    [C,h]=contourf(x(1:((Nx-1)/2+1),:),y(1:((Nx-1)/2+1),:),s((length(S)-1):((length(S)-1)+(Nx-1)/2),:),35,'LineStyle', '-');
+    hold on;
+    [C,h]=contourf(x(1:((Nx-1)/2+1),:),y(1:((Nx-1)/2+1),:),s((length(S)-1):((length(S)-1)+(Nx-1)/2),:),100,'LineStyle', 'none');
     axis equal
-    hold on
+
+    % plot quiver plot on top of contour plot
+    % [u,v] = gradient(s((length(S)-1):((length(S)-1)+(Nx-1)/2),:),1,1);
+    [u,v] = gradient((s((My+1):((My-1)/4)+(My+1),:)/(Nx-1)-1.5),1,1);
+    % theta = atan(u./v);
+    % U = cos(theta);
+    % V = sin(theta);
+    q = quiver(x(5:20:((Nx-1)/2+1),1:2:Nx),y(5:20:((Nx-1)/2+1),1:2:Nx),u(5:20:end,1:2:Nx),v(5:20:end,1:2:Nx),0.1);
+    
+    #q.Color = 'black';
+    #q.LineWidth = 1;
     plot(bx,by,'k','linewidth',1)
+    axis equal
     if (S(length(S)-1,6) < Nx) && (S(length(S)-1,6) < Nx)
         plot(bx(jet_range_index),by(jet_range_index),'r-','linewidth',2) 
     end
     axis([-2 48 -4 12]) % V plot
-    contour(x(1:((Nx-1)/2+1),:),y(1:((Nx-1)/2+1),:),(s((My+1):((My-1)/4)+(My+1),:)/(Nx-1)-1.5),((Nx-1)/2),'LineStyle', 'none'); 
     plot(bx,by,'k','linewidth',1);
     colorbar;
     colormap(jet); % sets color range of plot 
     axis([-2 16 -2 8]);
     [cbmin,cbmax] = colorbarLimits2(file_count,file_base_name);
     caxis([cbmin,cbmax]);
-      
-    saveas(fig, char(image_name)) % save figure as a .jpg 
-endfunction
+    imgName = strcat(image_name(1:end-4),'_C','.jpg');
+    saveas(fig, char(imgName)) % save figure as a .jpg 
+end
 
 [file,file_base_name,file_count] = fileSelection;
 
@@ -276,8 +360,14 @@ while file_number <= (file_count + 1)
     [dmux,dmuy,detx,dety] = gridSpacing(My,Nx,x,y,r,mu,eta);
     s = velocityVctr(s,S,Nx,My,dmux,dmuy,detx,dety,mu,eta);
     jet_range_index = jetLocation(S);
-    createPlot(x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_name,image_name);
+
+    createPlotA(x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_name,image_name);
     close
+    createPlotB(x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_name,image_name);
+    close
+    createPlotC(x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_name,image_name);
+    close
+
     file_number = file_number + 1;
     clear(file)
 end
