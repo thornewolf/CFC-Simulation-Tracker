@@ -40,7 +40,7 @@ def generateVisualizationStdin(run: SimulationRun, logger=None):
 
     separated_stdin = []
     # What is the P001 that you want to start at?
-    separated_stdin.append(f'"{file_name}P001"')
+    separated_stdin.append(f'{file_name}P001')
     file_count = len(glob.glob(f'{file_name}*'))
     # How many files are there to work with?
     # file_count-1 to intentionally ignore the base_name file.
@@ -155,7 +155,7 @@ def pipeline(run):
     
     stdin, filename = generateSimulationStdin(run, logger=logger)
     root = os.getcwd()
-    BIN_NAME = 'PFILONGMP_fast.out'
+    BIN_NAME = 'PFI_fast.out'
     path = os.path.join(root, BIN_NAME)
 
     p = runExecutableWithStdIn(path, stdin)

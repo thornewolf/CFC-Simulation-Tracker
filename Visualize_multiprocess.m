@@ -318,8 +318,8 @@ function createPlotC(x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_na
     % V = sin(theta);
     q = quiver(x(5:20:((Nx-1)/2+1),1:2:Nx),y(5:20:((Nx-1)/2+1),1:2:Nx),u(5:20:end,1:2:Nx),v(5:20:end,1:2:Nx),0.1);
     
-    q.Color = 'black';
-    q.LineWidth = 1;
+    #q.Color = 'black';
+    #q.LineWidth = 1;
     plot(bx,by,'k','linewidth',1)
     axis equal
     if (S(length(S)-1,6) < Nx) && (S(length(S)-1,6) < Nx)
