@@ -24,7 +24,7 @@ ch.setLevel(logging.INFO)
 ch.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
 logging.getLogger().addHandler(ch)
 
-def generateVisualizationStdin(run: SimulationRun):
+def generateVisualizationStdin(run: SimulationRun, logger=None):
     '''
     Generates the required input to start the conversion from output files to
     images.
@@ -46,6 +46,8 @@ def generateVisualizationStdin(run: SimulationRun):
     # file_count-1 to intentionally ignore the base_name file.
     separated_stdin.append(f'{file_count-1}')
     final_stdin = '\n'.join(separated_stdin) + '\n'
+    if logger is not None:
+        logger.info(f'The final stdin to pass to the visualization is\n{final_stdin}')
     return final_stdin
 
 def deleteLeftoverFiles(prefix: str):
@@ -153,7 +155,7 @@ def pipeline(run):
     
     stdin, filename = generateSimulationStdin(run, logger=logger)
     root = os.getcwd()
-    BIN_NAME = 'PFI_fast.out'
+    BIN_NAME = 'PFILONGMP_fast.out'
     path = os.path.join(root, BIN_NAME)
 
     p = runExecutableWithStdIn(path, stdin)
@@ -161,11 +163,12 @@ def pipeline(run):
     logger.info(f"Completed simulation step")
     
     ps = []
-    vizInputs = generateVisualizationStdin(run)
+    vizInputs = generateVisualizationStdin(run, logger=logger)
     for i in range(20):
-        p = mp.Process(target=runExecutableWithStdIn, args=(['octave-cli', os.path.join(root, f'Visualize_multiprocess.m')], vizInputs)) 
+        #p = mp.Process(target=runExecutableWithStdIn, args=(['octave-cli', os.path.join(root, f'Visualize_multiprocess.m')], vizInputs)) 
+        p = runExecutableWithStdIn(['octave-cli', os.path.join(root, f'Visualize_multiprocess.m')], vizInputs)
         ps.append(p)
-        p.start()
+        #p.start()
 
     for p in ps:
         ProcessWatcher(run, p, ["POST_PROCESSING", "COMPLETED"])

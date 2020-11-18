@@ -39,15 +39,9 @@ def images_to_video(base_name: str):
     print(out)
     out.release()
 
-<<<<<<< HEAD
-if __name__ == '__main__':
-	name = 'Run41_JetA0p01_JetF0p1'
-	images_to_video(name)
-=======
 def main():
 	base_name = "R14JetAmp0p01Freq0p06"
 	images_to_video(base_name)
 
 if __name__ == '__main__':
 	main()
->>>>>>> 003b8617f3568abfab6bab291c24d274279e6b41
