@@ -3,7 +3,6 @@
 % '_B' corresponds to no contour lines included
 % '_C' corresponds to the quiver plot.
 % example: PfR21A1p90x8Y16n03_1_A
-
 % Visualization code to generate images/frames of velocity flow fields based on output data 
 % from ParabolaFlow
 % 
@@ -225,6 +224,7 @@ function [x,y,bx,by,r,mu,eta,S] = generateVectors(Nx,My,s)
     r = sqrt(x.^2+y.^2); % Vector transform from parabolic to Cartesian
 endfunction
 
+
 function createPlotA(x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_name,image_name)
     % Plots velocity flow field over airfoil geometry, includes a colorbar and contour lines
     % and saves the figure and a .jpg that can be used as a frame for video.
@@ -280,13 +280,14 @@ function createPlotB(x,y,Nx,My,s,S,bx,by,jet_range_index,file_count,file_base_na
         plot(bx(jet_range_index),by(jet_range_index),'r-','linewidth',2) 
     end
     axis([-2 48 -4 12]) % V plot
-    
+
     plot(bx,by,'k','linewidth',1);
     colorbar;
     colormap(jet); % sets color range of plot 
     axis([-2 16 -2 8]);
     [cbmin,cbmax] = colorbarLimits2(file_count,file_base_name);
     caxis([cbmin,cbmax]);
+
     imgName = strcat(image_name(1:end-4),'_B','.jpg');
     saveas(fig, char(imgName)) % save figure as a .jpg 
 end

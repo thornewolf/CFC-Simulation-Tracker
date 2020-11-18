@@ -8,6 +8,7 @@ import sqlite3
 import datetime
 import logging
 import glob
+import multiprocessing as mp
 from subprocess import Popen, PIPE
 from typing import Union, List
 
@@ -24,17 +25,41 @@ ch.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
 logging.getLogger().addHandler(ch)
 
 def generateVisualizationStdin(run: SimulationRun):
+    '''
+    Generates the required input to start the conversion from output files to
+    images.
+    
+    Args:
+        run: A SimulationRun object that contains the necessary information for
+        file naming and accessing.
+
+    Returns:
+        A String containing the input for the visualization code.
+    '''
     file_name = run.name
 
     separated_stdin = []
+    # What is the P001 that you want to start at?
     separated_stdin.append(f'"{file_name}P001"')
     file_count = len(glob.glob(f'{file_name}*'))
+    # How many files are there to work with?
+    # file_count-1 to intentionally ignore the base_name file.
     separated_stdin.append(f'{file_count-1}')
     final_stdin = '\n'.join(separated_stdin) + '\n'
     return final_stdin
 
-def deleteLeftoverFiles(file_name: str):
-    maching_files = glob.glob(f'{file_name}*')
+def deleteLeftoverFiles(prefix: str):
+    '''
+    Removes all files that match the given prefix
+
+    Args:
+        prefix: The prefix to do a search on.
+
+    Returns:
+        None
+    '''
+
+    maching_files = glob.glob(f'{prefix}*')
     maching_files = [f for f in maching_files if '.avi' not in f]
     for f in maching_files:
         os.remove(f)
@@ -43,13 +68,10 @@ def deleteLeftoverFiles(file_name: str):
 def generateSimulationStdin(run: SimulationRun, logger=None):
     '''
     Generates the required input to start a simulation.
-
     Assumes that the simulation is being continued from some central state and the desired
     parameter to change is the jet.
-
     Args:
         run:  A SimulationRun representing the desired configuration
-
     Returns:
         A String representing the stdin required to start a simulation with that configuration.
         13 lines in total.
@@ -93,7 +115,6 @@ def generateSimulationStdin(run: SimulationRun, logger=None):
 def runExecutableWithStdIn(executable_path: Union[str, List[str]], stdin: str=''):
     '''
     Runs the specified executable then passes stdin to it.
-
     Args:
         executable_path: the path to the executable to run
         stdin: the stdin to pass
@@ -110,13 +131,10 @@ def runExecutableWithStdIn(executable_path: Union[str, List[str]], stdin: str=''
 def pipeline(run):
     '''
     Runs the pipeline associated with an end to end simulation -> post processing run.
-
     The pipeline will create and run 2 processes in sequence then return. The first process is the
     simulation and the second process is the video generation.
-
     Args:
         run: The simulation run to process.
-
     Returns:
         None.
     '''
@@ -135,18 +153,28 @@ def pipeline(run):
     
     stdin, filename = generateSimulationStdin(run, logger=logger)
     root = os.getcwd()
-    BIN_NAME = 'PFILONGMP.out'
+    BIN_NAME = 'PFI_fast.out'
     path = os.path.join(root, BIN_NAME)
 
     p = runExecutableWithStdIn(path, stdin)
     ProcessWatcher(run, p, ["SIMULATING", "AWAITING_POST_PROCESSING"])
     logger.info(f"Completed simulation step")
-    p = runExecutableWithStdIn(['octave-cli', os.path.join(root, f'Visualize.m')], generateVisualizationStdin(run))
-    ProcessWatcher(run, p, ["POST_PROCESSING", "COMPLETED"])
+    
+    ps = []
+    vizInputs = generateVisualizationStdin(run)
+    for i in range(20):
+        p = mp.Process(target=runExecutableWithStdIn, args=(['octave-cli', os.path.join(root, f'Visualize_multiprocess.m')], vizInputs)) 
+        ps.append(p)
+        p.start()
+
+    for p in ps:
+        ProcessWatcher(run, p, ["POST_PROCESSING", "COMPLETED"])
+
     images_to_video(filename)
     logger.info(f"Completed post processing step")
     deleteLeftoverFiles(filename)
     logger.info(f"Removed leftover files for run")
+    ps.clear()
 
     # Mark the run as completed.
     # TODO: Move this somewhere where the logic makes sense.

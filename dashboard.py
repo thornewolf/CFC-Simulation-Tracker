@@ -10,6 +10,13 @@ from simulation_run_utils import SimulationRun
 
 app = Flask(__name__)
 
+'''
+The code here is self explanatory if you are familiar with the Python Flask
+framework. If you need to make modifications to this file, I recommend that
+you first learn how flask works overall.
+
+See: http://flask.pocoo.org/docs/0.12/quickstart/
+'''
 
 @app.route('/')
 def index():
@@ -45,4 +52,4 @@ def get_baseline_simulations():
     return baselines
 
 if __name__ == '__main__':
-    app.run()
+	app.run(host='0.0.0.0', port='5000')
