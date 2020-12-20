@@ -10,6 +10,13 @@ from simulation_run_utils import SimulationRun
 
 app = Flask(__name__)
 
+'''
+The code here is self explanatory if you are familiar with the Python Flask
+framework. If you need to make modifications to this file, I recommend that
+you first learn how flask works overall.
+
+See: http://flask.pocoo.org/docs/0.12/quickstart/
+'''
 
 @app.route('/')
 def index():
@@ -21,6 +28,7 @@ def add():
         run_json = flask.request.form.get('configuration_text')
         run = SimulationRun(as_json=run_json)
         run.config.continued_run = flask.request.form.get('simtocont')
+        run.config.sim_type = flask.request.form.get('sim_type')
         run.config.date_created = datetime.datetime.now()
         run.config.status = 'QUEUED'
         run_id = addSimulationRunToDatabase(run)
@@ -45,4 +53,4 @@ def get_baseline_simulations():
     return baselines
 
 if __name__ == '__main__':
-    app.run()
+	app.run(host='0.0.0.0', port='5000')
