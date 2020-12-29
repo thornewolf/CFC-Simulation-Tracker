@@ -67,11 +67,13 @@ def deleteLeftoverFiles(prefix: str):
         os.remove(f)
 
 
+
 def generateSimulationStdinCont(run: SimulationRun, logger=None):
     '''
     Generates the required input to start the continuation a simulation.
     Assumes that the simulation is being continued from some central state and the desired
     parameter to change is the jet. 
+
     Args:
         run:  A SimulationRun representing the desired configuration
     Returns:
@@ -107,12 +109,12 @@ def generateSimulationStdinCont(run: SimulationRun, logger=None):
     separated_stdin.append(f'{run.config.iterations_between_writes}')
     # Say yes to continuing the simulation
     separated_stdin.append('y')
-
     
     final_stdin = os.linesep.join(separated_stdin) + os.linesep
     if logger is not None:
         logger.info(f'The final stdin to pass to the binary is\n{final_stdin}')
     return final_stdin,file_name
+
 
 def generateSimulationStdinNovel(run: SimulationRun, logger=None):
     '''
@@ -165,7 +167,6 @@ def generateSimulationStdinNovel(run: SimulationRun, logger=None):
         logger.info(f'The final stdin to pass to the binary is\n{final_stdin}')
     return final_stdin,file_name
 
-
 def runExecutableWithStdIn(executable_path: Union[str, List[str]], stdin: str=''):
     '''
     Runs the specified executable then passes stdin to it.
@@ -204,11 +205,11 @@ def pipeline(run):
 
     logger.info(f"Beginnning pipeline run.")
     
+
     if run.config.sim_type == 'continued': 
         stdin, filename = generateSimulationStdinContinued(run, logger=logger)
     elif: run.config.sim_type == 'new':
         stdin, filename = generateSimulationStdinNovel(run, logger=logger)
-
     root = os.getcwd()
     BIN_NAME = 'PFI_fast.out'
     path = os.path.join(root, BIN_NAME)

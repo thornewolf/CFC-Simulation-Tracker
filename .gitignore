@@ -6,6 +6,9 @@ __pycache__
 *.log
 simtocont
 *.avi
+*.jpg
 *.db
 *.ini
 Run?_Jet*
+*P[0-9]*
+octave-workspace
