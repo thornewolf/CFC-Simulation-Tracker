@@ -55,10 +55,12 @@ class SimulationRun:
             'tolerance': self.config.tolerance,
             'bcs': self.config.bcs,
             'continued_run': self.config.continued_run,
+            'time_steps': self.config.time_steps,
             'additional_steps': self.config.additional_steps,
             'time_between_reports': self.config.time_between_reports,
             'iterations_between_writes': self.config.iterations_between_writes,
-            'completion_time': self.config.completion_time
+            'completion_time': self.config.completion_time,
+            'sim_type': self.config.sim_type
         }, indent=1)
 
     @property
@@ -96,6 +98,10 @@ class SimulationRun:
     def datetime_completed(self):
         return datetime.datetime.fromisoformat(self.config.completion_time)
 
+    @property
+    def sim_type(self)
+        return self.config.sim_type
+
 @dataclass
 class SimulationRunConfig:
     id: int = None
@@ -113,7 +119,9 @@ class SimulationRunConfig:
     tolerance: float = None
     bcs: int = None
     continued_run: str = None
+    time_steps: int = 1000
     additional_steps: int = 1000
     time_between_reports: int = 100
     iterations_between_writes: int = 500
     completion_time: datetime.datetime = None
+    sim_type: str = None

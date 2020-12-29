@@ -67,11 +67,13 @@ def deleteLeftoverFiles(prefix: str):
         os.remove(f)
 
 
-def generateSimulationStdin(run: SimulationRun, logger=None):
+
+def generateSimulationStdinCont(run: SimulationRun, logger=None):
     '''
-    Generates the required input to start a simulation.
+    Generates the required input to start the continuation a simulation.
     Assumes that the simulation is being continued from some central state and the desired
-    parameter to change is the jet.
+    parameter to change is the jet. 
+
     Args:
         run:  A SimulationRun representing the desired configuration
     Returns:
@@ -114,6 +116,57 @@ def generateSimulationStdin(run: SimulationRun, logger=None):
     return final_stdin,file_name
 
 
+def generateSimulationStdinNovel(run: SimulationRun, logger=None):
+    '''
+    Generates the required input to start a novel simulation.
+    Assumes that the simulation is being continued from some central state and the desired
+    parameter to change is the jet. 
+    Args:
+        run:  A SimulationRun representing the desired configuration
+    Returns:
+        A String representing the stdin required to start a simulation with that configuration.
+        13 lines in total.
+    '''
+    separated_stdin = []
+    # continue the simulation
+    separated_stdin.append('1')
+    # size of mesh
+    separated_stdin.append(f'{run.config.mesh_n}')
+    separated_stdin.append(f'{run.config.mesh_m}')
+    # jet included
+    separated_stdin.append('y')
+    # Start location, End Location, Amplitude, Frequency
+    separated_stdin.append(f'{run.config.jet_start}')
+    separated_stdin.append(f'{run.config.jet_end}')
+    separated_stdin.append(f'{run.config.jet_amp}')
+    separated_stdin.append(f'{run.config.jet_freq}')
+    # reynold number
+    separated_stdin.append(f'{run.config.reynolds}')
+    # circulation parameter (A-tilde)
+    separated_stdin.append(f'{run.config.a_tilde}')
+    # time steps
+    separated_stdin.append(f'{run.config.time_steps}')
+    # Iterations between reports
+    separated_stdin.append(f'{run.config.time_between_reports}')
+    # dt
+    separated_stdin.append(f'{run.config.dt}')
+    # tolerance level
+    separated_stdin.append(f'{run.config.tolerance}')
+    # BCs
+    separated_stdin.append(f'{run.config.bcs}')
+    # Output File name
+    file_name = run.name
+    separated_stdin.append(file_name)
+    # Iterations between file writes
+    separated_stdin.append(f'{run.config.iterations_between_writes}')f
+    # Say yes to continuing the simulation
+    separated_stdin.append('y')
+
+    final_stdin = os.linesep.join(separated_stdin) + os.linesep
+    if logger is not None:
+        logger.info(f'The final stdin to pass to the binary is\n{final_stdin}')
+    return final_stdin,file_name
+
 def runExecutableWithStdIn(executable_path: Union[str, List[str]], stdin: str=''):
     '''
     Runs the specified executable then passes stdin to it.
@@ -148,12 +201,15 @@ def pipeline(run):
         logger = logging.getLogger(f'AutomateSims.simulation_run_pipeline.Run{run.config.id}')
         run.config.id = run_id
 
-
     logger.setLevel(logging.INFO)
 
     logger.info(f"Beginnning pipeline run.")
     
-    stdin, filename = generateSimulationStdin(run, logger=logger)
+
+    if run.config.sim_type == 'continued': 
+        stdin, filename = generateSimulationStdinContinued(run, logger=logger)
+    elif: run.config.sim_type == 'new':
+        stdin, filename = generateSimulationStdinNovel(run, logger=logger)
     root = os.getcwd()
     BIN_NAME = 'PFI_fast.out'
     path = os.path.join(root, BIN_NAME)
