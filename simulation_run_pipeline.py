@@ -9,6 +9,7 @@ import datetime
 import logging
 import glob
 import multiprocessing as mp
+import zipfile
 from subprocess import Popen, PIPE
 from typing import Union, List
 
@@ -65,6 +66,53 @@ def deleteLeftoverFiles(prefix: str):
     maching_files = [f for f in maching_files if '.avi' not in f]
     for f in maching_files:
         os.remove(f)
+
+def get_output_file_names(run):
+    file_name = run.name
+    output_files = glob.glob(f'{file_name}P*')
+
+    # This should extract the file_number so we do not sort lexographically
+    sorting_function = lambda file_name: int(file_name.split('P')[1])
+
+    output_files = sorted(output_files, key=sorting_function)
+    return output_files
+
+
+
+def compress_files(inp_file_names, run):
+    """
+    Compresses a list of files into a .zip file.
+
+    Args:
+        inp_file_names : list of filenames to be zipped
+        out_zip_file : output zip file
+
+    Returns:
+        None
+    """
+
+    out_zip_file = f'{run.name}'
+
+    # Select the compression mode ZIP_DEFLATED for compression
+    # or zipfile.ZIP_STORED to just store the file
+    compression = zipfile.ZIP_DEFLATED
+    print(f" *** Input File name passed for zipping - {inp_file_names}")
+
+    # create the zip file first parameter path/name, second mode
+    print(f' *** out_zip_file is - {out_zip_file}')
+    zf = zipfile.ZipFile(out_zip_file, mode="w")
+
+    try:
+        for file_to_write in inp_file_names:
+        # Add file to the zip file
+        # first parameter file to zip, second filename in zip
+            print(f' *** Processing file {file_to_write}')
+            zf.write(file_to_write, file_to_write, compress_type=compression)
+    except FileNotFoundError as e:
+        print(f' *** Exception occurred during zip process - {e}')
+    finally:
+        # Don't forget to close the file!
+        zf.close()
 
 
 
@@ -158,7 +206,7 @@ def generateSimulationStdinNovel(run: SimulationRun, logger=None):
     file_name = run.name
     separated_stdin.append(file_name)
     # Iterations between file writes
-    separated_stdin.append(f'{run.config.iterations_between_writes}')f
+    separated_stdin.append(f'{run.config.iterations_between_writes}')
     # Say yes to continuing the simulation
     separated_stdin.append('y')
 
@@ -204,11 +252,12 @@ def pipeline(run):
     logger.setLevel(logging.INFO)
 
     logger.info(f"Beginnning pipeline run.")
+    logger.info(f'Simulation type is {run.config.sim_type}')
     
 
     if run.config.sim_type == 'continued': 
         stdin, filename = generateSimulationStdinContinued(run, logger=logger)
-    elif: run.config.sim_type == 'new':
+    elif run.config.sim_type == 'new':
         stdin, filename = generateSimulationStdinNovel(run, logger=logger)
     root = os.getcwd()
     BIN_NAME = 'PFI_fast.out'
@@ -217,6 +266,11 @@ def pipeline(run):
     p = runExecutableWithStdIn(path, stdin)
     ProcessWatcher(run, p, ["SIMULATING", "AWAITING_POST_PROCESSING"])
     logger.info(f"Completed simulation step")
+
+    logger.info(f'Compressing files')
+    output_files = get_output_file_names(run)
+    logger.info(f'Found {len(output_files)} files. Like {output_files[:1]}')
+    compress_files(output_files, run)
     
     ps = []
     vizInputs = generateVisualizationStdin(run, logger=logger)
@@ -231,6 +285,7 @@ def pipeline(run):
 
     images_to_video(filename)
     logger.info(f"Completed post processing step")
+
     deleteLeftoverFiles(filename)
     logger.info(f"Removed leftover files for run")
     ps.clear()

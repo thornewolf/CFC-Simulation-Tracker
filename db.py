@@ -111,7 +111,6 @@ def testCreateAndAddRunToDatabase():
     Test function to ensure that we can add a variety of runs to the database.
     '''
     # TODO: Make this function use a different database file, rather than wiping the main one. 
-
     create_table(drop_first=True)
     r1dt = datetime.datetime.now()
     run1 = SimulationRun(None, "COMPLETED", r1dt, 2100, 299, 399, 120, 130, 0.001, 0.007, 1.8, 1e-3, 1e-5, 20, inline=True)

@@ -28,7 +28,6 @@ def add():
         run_json = flask.request.form.get('configuration_text')
         run = SimulationRun(as_json=run_json)
         run.config.continued_run = flask.request.form.get('simtocont')
-        run.config.sim_type = flask.request.form.get('sim_type')
         run.config.date_created = datetime.datetime.now()
         run.config.status = 'QUEUED'
         run_id = addSimulationRunToDatabase(run)

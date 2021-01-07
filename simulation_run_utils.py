@@ -99,7 +99,7 @@ class SimulationRun:
         return datetime.datetime.fromisoformat(self.config.completion_time)
 
     @property
-    def sim_type(self)
+    def sim_type(self):
         return self.config.sim_type
 
 @dataclass
