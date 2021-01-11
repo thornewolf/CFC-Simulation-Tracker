@@ -23,6 +23,9 @@ def images_to_video(base_name: str):
       logger.info(f'Found {len(matching_files)} files corresponding to {base_name}.\n e.g. {matching_files[:1]}')
       matching_file_numbers = [int(f.split('_')[-2]) for f in matching_files]
       ordered_files = sorted(zip(matching_file_numbers, matching_files))
+      if len(ordered_files) == 0:
+        logger.info(f'Could not find any files matching {base_name} for part {part} of image generation. Perhaps the image generation failed?')
+        continue
       for i,filename in ordered_files:
         print(i, filename)
         path = os.path.join(root,filename)

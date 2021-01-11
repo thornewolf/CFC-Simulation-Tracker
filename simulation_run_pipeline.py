@@ -256,7 +256,7 @@ def pipeline(run):
     
 
     if run.config.sim_type == 'continued': 
-        stdin, filename = generateSimulationStdinContinued(run, logger=logger)
+        stdin, filename = generateSimulationStdinCont(run, logger=logger)
     elif run.config.sim_type == 'new':
         stdin, filename = generateSimulationStdinNovel(run, logger=logger)
     root = os.getcwd()
