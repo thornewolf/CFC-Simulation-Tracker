@@ -42,7 +42,7 @@ def generateVisualizationStdin(run: SimulationRun, logger=None):
     separated_stdin = []
     # What is the P001 that you want to start at?
     separated_stdin.append(f'{file_name}P001')
-    file_count = len(glob.glob(f'{file_name}*'))
+    file_count = len(glob.glob(f'{file_name}P[0-9][0-9][0-9]'))
     # How many files are there to work with?
     # file_count-1 to intentionally ignore the base_name file.
     separated_stdin.append(f'{file_count-1}')
@@ -79,7 +79,7 @@ def get_output_file_names(run):
 
 
 
-def compress_files(inp_file_names, run):
+def compress_files(inp_file_names, run, logger=None):
     """
     Compresses a list of files into a .zip file.
 
@@ -91,25 +91,29 @@ def compress_files(inp_file_names, run):
         None
     """
 
-    out_zip_file = f'{run.name}'
+    out_zip_file = f'{run.name}.zip'
 
     # Select the compression mode ZIP_DEFLATED for compression
     # or zipfile.ZIP_STORED to just store the file
     compression = zipfile.ZIP_DEFLATED
-    print(f" *** Input File name passed for zipping - {inp_file_names}")
+    if logger is not None:
+        logger.info(f" *** Input File name passed for zipping - {inp_file_names}")
 
     # create the zip file first parameter path/name, second mode
-    print(f' *** out_zip_file is - {out_zip_file}')
+    if logger is not None:
+        logger.info(f' *** out_zip_file is - {out_zip_file}')
     zf = zipfile.ZipFile(out_zip_file, mode="w")
 
     try:
         for file_to_write in inp_file_names:
-        # Add file to the zip file
-        # first parameter file to zip, second filename in zip
-            print(f' *** Processing file {file_to_write}')
-            zf.write(file_to_write, file_to_write, compress_type=compression)
+            # Add file to the zip file
+            # first parameter file to zip, second filename in zip
+            if logger is not None:
+                logger.info(f' *** Processing file {file_to_write}')
+                zf.write(file_to_write, file_to_write, compress_type=compression)
     except FileNotFoundError as e:
-        print(f' *** Exception occurred during zip process - {e}')
+        if logger is not None:
+            logger.info(f' *** Exception occurred during zip process - {e}')
     finally:
         # Don't forget to close the file!
         zf.close()
@@ -270,11 +274,11 @@ def pipeline(run):
     logger.info(f'Compressing files')
     output_files = get_output_file_names(run)
     logger.info(f'Found {len(output_files)} files. Like {output_files[:1]}')
-    compress_files(output_files, run)
+    compress_files(output_files, run, logger=logger)
     
     ps = []
     vizInputs = generateVisualizationStdin(run, logger=logger)
-    for _ in range(20):
+    for _ in range(5):
         p = runExecutableWithStdIn(['octave-cli', os.path.join(root, f'Visualize_multiprocess.m')], vizInputs)
         ps.append(p)
 
