@@ -274,20 +274,24 @@ def pipeline(run):
     
     ps = []
     vizInputs = generateVisualizationStdin(run, logger=logger)
-    for i in range(20):
-        #p = mp.Process(target=runExecutableWithStdIn, args=(['octave-cli', os.path.join(root, f'Visualize_multiprocess.m')], vizInputs)) 
+    for _ in range(20):
         p = runExecutableWithStdIn(['octave-cli', os.path.join(root, f'Visualize_multiprocess.m')], vizInputs)
         ps.append(p)
-        #p.start()
 
     for p in ps:
-        ProcessWatcher(run, p, ["POST_PROCESSING", "COMPLETED"])
+        ProcessWatcher(run, p, ["IMAGE_GENERATION", "COMPLETED"])
 
-    images_to_video(filename)
-    logger.info(f"Completed post processing step")
+    logger.info(f"Completed image generating step")
 
-    deleteLeftoverFiles(filename)
-    logger.info(f"Removed leftover files for run")
+    failures = images_to_video(filename)
+    logger.info(f"Completed video generating with {failures} failures.")
+
+    if failures == 0:
+        deleteLeftoverFiles(filename)
+        logger.info(f"Removed leftover files for run")
+    else:
+        logger.info(f"Nonzero errors occured during image_to_video conversion. Skipping cleanup job.")
+
     ps.clear()
 
     # Mark the run as completed.

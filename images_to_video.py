@@ -18,6 +18,7 @@ def images_to_video(base_name: str):
     logger = logging.getLogger(f'AutomateSims.images_to_video.{base_name}')
     img_array = []
     root = os.getcwd()
+    failure_count = 0
     for part in ['A', 'B', 'C']:
       matching_files = glob.glob(f'{base_name}*{part}.jpg')
       logger.info(f'Found {len(matching_files)} files corresponding to {base_name}.\n e.g. {matching_files[:1]}')
@@ -25,6 +26,7 @@ def images_to_video(base_name: str):
       ordered_files = sorted(zip(matching_file_numbers, matching_files))
       if len(ordered_files) == 0:
         logger.info(f'Could not find any files matching {base_name} for part {part} of image generation. Perhaps the image generation failed?')
+        failure_count += 1
         continue
       for i,filename in ordered_files:
         print(i, filename)
@@ -42,6 +44,7 @@ def images_to_video(base_name: str):
         out.write(img_array[i])
       print(out)
       out.release()
+    return failure_count
 
 def main():
   base_name = "Run1_JetA0p001_JetF0p007"
