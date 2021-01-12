@@ -25,6 +25,7 @@ tr:nth-child(even) {
   <tr>
     <th>Status</th>
     <th>Run id</th>
+    <th>Info</th>
     <th>Date created</th>
     <th>Run time</th>
     <th>Continuing Simulation</th>
@@ -39,6 +40,7 @@ tr:nth-child(even) {
   <tr>
     <td>{{ row.config.status }}</td>
     <td>{{ row.config.id }}</td>
+    <td><a href="/info/{{ row.config.id }}"> Info</a></td>
     <td>{{ row.config.date_created }}</td>
     <td>{{ row.runtime }}</td>
     <td>{{ row.config.continued_run }}</td>

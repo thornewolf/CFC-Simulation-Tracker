@@ -45,6 +45,14 @@ def add():
     ''')
     return render_template('add.html', continue_simulation_options=get_baseline_simulations(), default_text=sample_run.json)
 
+@app.route('/info/<run_id>', methods=['GET'])
+def run_info(run_id):
+    body = []
+    with open('simulations.log', 'r') as f:
+        body = f.readlines()
+    body = [l for l in body if f'Run{run_id}:' in l]
+    return render_template('siminfo.html', log=body)
+
 def get_baseline_simulations():
     baselines = None
     with open('baseline_sims.config') as f:
