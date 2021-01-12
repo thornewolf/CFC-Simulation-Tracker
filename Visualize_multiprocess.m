@@ -357,6 +357,9 @@ while file_number <= (file_count + 1)
     Nx = s(length(s)-1,1);
     My = s(length(s)-1,2);
     [x,y,bx,by,r,mu,eta,S] = generateVectors(Nx,My,s);
+    disp(My)
+    disp(Nx)
+
     [dmux,dmuy,detx,dety] = gridSpacing(My,Nx,x,y,r,mu,eta);
     s = velocityVctr(s,S,Nx,My,dmux,dmuy,detx,dety,mu,eta);
     jet_range_index = jetLocation(S);

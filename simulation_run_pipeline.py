@@ -62,7 +62,7 @@ def deleteLeftoverFiles(prefix: str):
         None
     '''
 
-    maching_files = glob.glob(f'{prefix}*')
+    maching_files = glob.glob(f'{prefix}P[0-9][0-9][0-9]')
     maching_files = [f for f in maching_files if '.avi' not in f]
     for f in maching_files:
         os.remove(f)
@@ -290,11 +290,11 @@ def pipeline(run):
     failures = images_to_video(filename)
     logger.info(f"Completed video generating with {failures} failures.")
 
-    if failures == 0:
+    if len(glob.glob(f'{run.name}*.zip')):
         deleteLeftoverFiles(filename)
         logger.info(f"Removed leftover files for run")
     else:
-        logger.info(f"Nonzero errors occured during image_to_video conversion. Skipping cleanup job.")
+        logger.info(f"Could not find compressed file. Keeping leftover files.")
 
     ps.clear()
 
