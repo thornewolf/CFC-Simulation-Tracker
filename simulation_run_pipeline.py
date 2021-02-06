@@ -288,6 +288,7 @@ def pipeline(run):
     logger.info(f"Completed image generating step")
 
     failures = images_to_video(filename)
+
     logger.info(f"Completed video generating with {failures} failures.")
 
     if len(glob.glob(f'{run.name}*.zip')):
@@ -300,6 +301,8 @@ def pipeline(run):
 
     # Mark the run as completed.
     # TODO: Move this somewhere where the logic makes sense.
+    if failures > 0:
+        run.config.status = 'FINISHED_WITH_FAILURES'
     run = getSimulationRunById(run.config.id)
     run.config.completion_time = str(datetime.datetime.now())
     updateRunInDatabase(run)

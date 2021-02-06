@@ -99,7 +99,7 @@ def getAllSimulationRuns():
 def getFirstQueuedRun():
     conn = sqlite3.connect(DB_NAME) 
     c = conn.cursor()
-    c.execute('''SELECT configuration from jobs where status="QUEUED"''')
+    c.execute('''SELECT configuration from jobs where status!="COMPLETED"''')
     row = c.fetchone()
     if not row:
         return None
