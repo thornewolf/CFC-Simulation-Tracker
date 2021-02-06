@@ -1,7 +1,7 @@
 	PROGRAM ParabolaFlow
 *******************************************************************************
 *******************************************************************************
-*	This program solves the Vorticity-Streamline equations for the flow of  
+*	This program solves the Vorticity-Streamline equations for the flow of
 *	an incompressible fluid around a canonic parabola at various modified
 *	Reynolds Numbers and Circulation paramters with or without a synthetic
 *	jet modification.
@@ -40,7 +40,7 @@
 *   6.	ia		(Jet start location)
 *   7.	ib		(Jet end location)
 
-	
+
 *	Double Precision Variables (OutDP)
 *******************************************************************************
 *   1.	Re		(Reynolds number)
@@ -99,15 +99,16 @@
 	double precision Xmin, Xmax, Ymin, Ymax, xi, Umax, Re, C,
      c	dx,dx2,dxx,dy,dy2,dyy,dt,Kappa2,KappaA,Rc,Cx,Cx2,Cy,Cy2,d6,
      c	alphaX,alphaY,alpha,Tol,OmTol,PsiTol,
-     c	Amp,pi,Lambda,freq,yhalf,t,c0,amewa,f,A
+     c	Amp,pi,Lambda,freq,yhalf,t,c0,amewa,f,A,minu,maxu,minv,maxv,
+     c  currentminu,currentmaxu,currentminv,currentmaxv
 
 *	Parameters to be adjusted
 *******************************************************************************
 	parameter (Xmin=-20, Xmax=20, Ymin=1, Ymax=11)
 	parameter (pi = 3.14159265358979d0, Umax = 1)
 
-*	Preallocated arrays	
-******************************************************************************* 
+*	Preallocated arrays
+*******************************************************************************
 	double precision, allocatable :: x(:),y(:),Psi(:,:),
      c	u(:,:),v(:,:),Psi0(:,:),DM(:,:),DM2(:,:),
      c	OutDP(:)
@@ -121,7 +122,7 @@
 1000	print *,' '
 	print *,'Welcome to Parabola Flow Interactive'
 	print *,''
-	tic=0	
+	tic=0
 	ct=0
 	flag=0
 	report=0
@@ -133,27 +134,27 @@
 	read *,index
 
 	if (index.eq.1) then
-		
+
 		print *,'What size mesh would you like to run?'
 		print *,'N ='
 		read *,Nx
 		print *,'M ='
 		read *,My
-		
+
 		freq = 0
 		c0 = 0
 		ia = Nx + 4
 		ib = Nx + 4
-		
-		
+
+
 		write (form(1:),'(I20)') (Nx+2)
 		write (form1(1:),'(I20)') (Nx+2)
 		form = ADJUSTL(form)
 		form1 = ADJUSTL(form1)
 		write (form(:),*) '('//TRIM(form)//'E30.14E3)'
 		write (form1(:),*) '('//TRIM(form1)//'I30.1)'
-		
-		
+
+
 		allocate (x(Nx+2))
 		allocate (y(My+2))
 		allocate (Omega(Nx+2,My+2))
@@ -166,13 +167,13 @@
 		allocate (DM2(Nx+2,My+2))
 		allocate (OutDP(Nx+2))
 		allocate (OutIN(Nx+2))
-		
-		
-		
+
+
+
 1010		print *,'Would you like to include a jet in the simulation?
      c		(y/n)'
 		read *,index3
-			
+
 		if(index3.eq.'y') then
 			print *,'What is the start location of the jet?'
 			print *,'Range of 0 to', Nx
@@ -183,16 +184,16 @@
 			read *,c0
 			print *,'What is the frequency of the jet?'
 			read *,freq
-		
+
 		elseif (index3.eq.'n') then
 			freq = 0
 			c0 = 0
 			ia = Nx+4
 			ib = Nx+4
-		else 
+		else
 		  	goto 1010
-		endif		
-		
+		endif
+
 		print *,'What Reynolds Number would you like to run?'
 		read *,Re
 		print *,'What value of circulation parameter (A-Tilde),'
@@ -215,7 +216,7 @@
 		print *,'And what would you like to call the output file?'
 		read *,filename
 		LL=length(filename,45)
-		
+
 		pfile=filename
 		TT=LL+3
 		pfile(LL+1:)='P'
@@ -223,50 +224,50 @@
 		print *,'How many iterations between incremental file writes?'
 		print *,'(Use negative number to turn off incremtnal save)'
 		read *,psave
-		
-		
+
+
 *		Generate the grid vectors and calculate dx and dy
-		
-		
+
+
 			call linspace(Xmin,Xmax,Nx+2,x,dx)
 			dx2 = 2*dx
 			dxx = dx*dx
-		
+
 			call linspace(Ymin,Ymax,My+2,y,dy)
 			dy2 = 2*dy
 			dyy = dy*dy
-			
-*	following do loop fills DM, distance matrix for look up puproses			
+
+*	following do loop fills DM, distance matrix for look up puproses
 
 			do 76 i = 1,Nx+2
 				do 77 j = 1,My+2
-			
+
 			DM(i,j) = Dsqrt(x(i)**2+y(j)**2)
 			DM2(i,j) = DM(i,j) * DM(i,j)
-			
+
 77				continue
-76			continue 
+76			continue
 *	previous do loop fills DM, distance matrix for look up puproses
 
 			Kappa2 = (dx/dy)**2
 			KappaA = 1.0d0/(2.0d0*(1+Kappa2))
 			Rc = Re*dx
-		
+
 			Cx = dt/dx
 			CX2 = .5d0*Cx
 			Cy = dt/dy
 			Cy2 = .5d0*Cy
-		
+
 			if (Cx.gt.Cy) then
 				C = Cx
 			else
 				C = Cy
 			endif
-		
+
 			alphaX = dt/(dxx*Re)
 			alphaY = dt/(dyy*Re)
 			alpha = 2.0d0*alphaX + 2.0d0*alphaY
-		
+
 			print *,'The Courant Number C =',C,' Must be less than 1'
 			print *,''
 			print *,'The Cell Reynolds Number Rc =',Rc
@@ -276,34 +277,34 @@
 			print *,''
 			print *,'Continue? (y/n)'
 			read *,index2
-			
+
 			if (index2.eq.'y') then
 				goto 2000
 			else
 				goto 5000
 			endif
-		
+
 	elseif (index.eq.2) then
 		print *,' Enter the Previous Simulation File Name: '
 		read *, data
 		open (unit = 1, file = data, status = 'old')
 
 		form = '(A10)'
-		
+
 		o = 0
 1012		if (getlength.NE.'          ') then
 			read (1,form) getlength
 			o = o + 1
 			goto 1012
 		endif
-		
+
 		My = (o - 1)/4 - 2
 		close(1)
-		
+
 		open (unit = 1, file = data, status = 'old')
-		
+
 		form = '(A30)'
-		
+
 		o = 0
 1013		if (o.lt.4*(My +2)+1) then
 			read (1,form) getlength
@@ -316,10 +317,10 @@
 
 		read(getlength,form1) Nx
 		Nx = Nx - 2
-		close(1)		
-		
-		open (unit = 1, file = data, status = 'old')		
-	
+		close(1)
+
+		open (unit = 1, file = data, status = 'old')
+
 		allocate (x(Nx+2))
 		allocate (y(My+2))
 		allocate (Omega(Nx+2,My+2))
@@ -332,30 +333,30 @@
 		allocate (DM2(Nx+2,My+2))
 		allocate (OutDP(Nx+2))
 		allocate (OutIN(Nx+2))
-		
+
 		write (form(1:),'(I20)') (Nx+2)
 		write (form1(1:),'(I20)') (Nx+2)
 		form = ADJUSTL(form)
 		form1 = ADJUSTL(form1)
 		write (form(:),*) '('//TRIM(form)//'E30.14E3)'
 		write (form1(:),*) '('//TRIM(form1)//'I30.1)'
-		
+
 		read (1,form) Omega
 		read (1,form) Psi
 		read (1,form) u
 		read (1,form) v
 		read (1,form1) OutIN
 		read (1,form) OutDP
-		
+
 		IBL = OutIN(5)
 		ia = OutIN(6)
 		ib = OutIN(7)
 		k = OutIN(3)
 		kosc = 0
 		kerr = k + 1
-		Re = OutDP(1) 
+		Re = OutDP(1)
 		Omtol = OutDP(2)
-		PsiTol = OutDP(3) 
+		PsiTol = OutDP(3)
 		dx = OutDP(4)
 		dy = OutDP(5)
 		dt = OutDP(6)
@@ -363,7 +364,13 @@
 		A = OutDP(12)
 		freq = OutDP(13)
 		c0 = OutDP(14)
-		
+		minu = OutDP(15)
+		maxu = OutDP(16)
+		minv = OutDP(17)
+		maxv = OutDP(18)
+
+
+
 		print *,'The number of points along the airfoil (Nx) is ',Nx
 		print *,'The number of points in y direction (My) is ',My
 		print *,'The Reynolds Number (Re) is ',Re
@@ -383,56 +390,56 @@
 1015		print *,'Would you like to change any of the simulation'
      		print *,'parameters? (y/n)'
      		read *,index3
-     			
+
      		if(index3.eq.'y') then
-     			
+
 		print *,'What value of circulation parameter,
      c		(A-Tilde) would you like to use?'
-		read *,A			
+		read *,A
 		print *,'How many grid lines do you want to,
      c		be treated with Boundary Layer BCs?'
 		read *,IBL
-		print *,'Input a new Tolerance value equal or 
+		print *,'Input a new Tolerance value equal or
      c		less than ',OutDP(7)
-		read *,Tol			
+		read *,Tol
 1020		print *,'What value of time step (dt) would you like to use?'
-		read *,dt	
-		
+		read *,dt
+
 		elseif(index3.eq.'n') then
 		else
 		goto 1015
 		endif
-		
-		
+
+
 		if(OutDP(14).gt.kosc) then
 		print *,'There is a jet in the simulation.'
 		print *,''
-		
+
 		print *,'The start location is ',OutIN(6),''
 		print *,'The end location is ',OutIN(7),''
 		print *,'The amplitude is ',OutDP(14)
 		print *,'The frequency is ',OutDP(13)
-		
+
 		else
 		print *,'There is no jet in the simulation'
 		print *,''
 		endif
-		
+
 1030		print *,'Would you like to change the jet parameters? (y/n)'
 		read *,index3
-		
+
 		if(index3.eq.'y') then
-			
+
 			print *,'What is the new start location of the jet?'
 			print *,'Max of',Nx
 			read *,ia
 			print *,'What is the new end location?'
 			read *,ib
 			print *,'What is the new amplitude of the jet?'
-			read *,c0				
+			read *,c0
 			print *,'What is the new frequency of the jet?'
 			read *,freq
-	
+
 		elseif(index3.eq.'n') then
 			freq = OutDP(13)
 			c0 = OutDP(14)
@@ -441,61 +448,61 @@
 		else
 			goto 1030
 		endif
-			
+
 *		Generate the grid vectors and calculate dx and dy
 
-			
+
 1035			call linspace(Xmin,Xmax,Nx+2,x,dx)
 			dx2 = 2*dx
 			dxx = dx*dx
-		
+
 			call linspace(Ymin,Ymax,My+2,y,dy)
 			dy2 = 2*dy
 			dyy = dy*dy
 
-*	following do loop fills DM, distance matrix for look up puproses			
+*	following do loop fills DM, distance matrix for look up puproses
 			do 78 i = 1,Nx+2
 				do 79 j = 1,My+2
-						
+
 				DM(i,j) = Dsqrt(x(i)*x(i)+y(j)*y(j))
 				DM2(i,j) = DM(i,j) * DM(i,j)
-						
+
 79				continue
-78			continue 
+78			continue
 *	Previous do loop fills DM, distance matrix for look up puproses
 
 			Kappa2 = (dx/dy)**2
 			KappaA = 1.0d0/(2.0d0*(1+Kappa2))
 			Rc = Re*dx
-				
+
 			Cx = dt/dx
 			CX2 = .5d0*Cx
 			Cy = dt/dy
 			Cy2 = .5d0*Cy
-		
+
 			if (Cx.gt.Cy) then
 				C = Cx
 			else
 				C = Cy
 			endif
-		
+
 			alphaX = dt/(dxx*Re)
 			alphaY = dt/(dyy*Re)
 			alpha = 2.0d0*alphaX + 2.0d0*alphaY
-			
-			
 
-			
+
+
+
 		if (Rc.gt.4/C) then
-			print *,'The Courant Number (C) is 
+			print *,'The Courant Number (C) is
      c			',C,' Must be less than 1 and'
 			print *,'The Cell Reynolds Number (Rc) is ',Rc,',
      c			MUST BE LESS THAN (4/C) ', 4/C
      			print *,'What value of time step (dt) would you like to use?'
 			read *,dt
 			goto 1035
-		endif	
-			
+		endif
+
 		print *,''
 		print *,'There have been ',k,' time steps for this model.'
 		print *,'How many more would you like to perfom?'
@@ -512,8 +519,8 @@
 		pfile(LL+1:)='P'
 		print *,'How many iterations between incremental file writes?'
 		print *,'(Use negative number to turn off incremtnal save)'
-		read *,psave	
-		
+		read *,psave
+
 			print *,'The Courant Number (C) is ',C,' Must be less than 1'
 			print *,''
 			print *,'The Reynolds Number (Re) is ',Re
@@ -524,7 +531,7 @@
 			print *,''
 1038			print *,'Continue to ',Ot,'? (y/n)'
 			read *,index2
-			
+
 			if (index2.eq.'y') then
 				goto 3000
 			elseif (index2.eq.'n') then
@@ -532,13 +539,13 @@
 			else
 			goto 1038
 			endif
-		
+
 	else
 		goto 5000
 	endif
-	
 
-	
+
+
 *******************************************************************************
 *******************************************************************************
 *Set up the Initial Conditions
@@ -550,20 +557,20 @@
 2000	call ZEROS(Nx+2,My+2,1,v)
 	do 5 i = 1,Nx+2
 		do 6 j = 1,My+2
-		v(i,j) = -(y(j)-1.0d0)/DM(i,j)			
+		v(i,j) = -(y(j)-1.0d0)/DM(i,j)
 6		enddo
-5	enddo		
-	
+5	enddo
+
 
 *Generate the x velocity component matrix u
 **************************************************
 	call ZEROS(Nx+2,My+2,1,u)
 	do 10 i = 1,Nx+2
 		do 20 j = 2,My+2
-		u(i,j) = (x(i)+A)/DM(i,j)		
+		u(i,j) = (x(i)+A)/DM(i,j)
 20		enddo
 10	enddo
-	
+
 *	Generate the Streamline matrix Psi
 ******************************************
 	call ZEROS(Nx+2,My+2,1,Psi)
@@ -577,11 +584,11 @@
 *	Generate the Vorticity matrix Omega
 *******************************************
 	call ZEROS(Nx+2,My+2,1,Omega)
-	do 45 i = 1,Nx+2		
+	do 45 i = 1,Nx+2
 		Omega(i,1) = (7.0d0*Psi(i,1)-8.0d0*Psi(i,2)+Psi(i,3))/
-     c		(2.0d0*dyy)/DM2(i,1)		
+     c		(2.0d0*dyy)/DM2(i,1)
 45      enddo
-	
+
 	call FDATE(STRNG)
 	print*,'Flow-field finished initializing at ',STRNG
 
@@ -608,7 +615,7 @@
 
 *	Omega,Psi, and Velocity Calculations
 ****************************************************
-	
+
 	call OmegaCalc(Nx,My,Cx2,Cy2,alpha,alphaX,alphaY,Omega,
      c	Omega0,u,v,DM,DM2)
 	call PsiCalc(Nx,My,Kappa2,KappaA,dxx,Psi,Omega,kPsi,DM2,Tol)
@@ -622,14 +629,14 @@
 
 	amewa=(ia-((Nx+1)/2 +1))*dx
 	f=Dsin(2*pi*freq*t)
-	
-	
+
+
 	do 87 i = 1,Nx+2
-*	Lower 
+*	Lower
 		j=1
 		d6=x(i)**2+y(1)**2
 		Psi(i,1) = 0.0d0
-		
+
 		if ((i.ge.ia) .and. (i.le.ib)) then
 
 	Psi(i,1)=(-c0*(0.0-.5*amewa*Dsqrt(amewa**2+1.0d0)-.5*Dsinh(amewa)
@@ -637,42 +644,42 @@
 
 		else
 			goto 910
-		endif		
+		endif
 910		continue
-		
+
 		if (i.gt.ib) then
 			Psi(i,1)=Psi(ib,1)
 		else
 			goto 920
-		endif					
-920		continue		
-		
-		
+		endif
+920		continue
+
+
 		Omega(i,1) = (7.0d0*Psi(i,1)-8.0*Psi(i,2)+Psi(i,3))/(2.0*dyy)/d6
 		u(i,1) = 0.0
 		v(i,1) = 0.0
-		
+
 		if ((i.gt.ia) .and. (i.lt.ib)) then
 			v(i,1)=c0*f
-		else 
+		else
 			go to 930
-		endif		
+		endif
 930		continue
-			
+
 		if ((i.ge.(ia-1)) .and. (i.le.(ib+1))) then
-		
+
 	Omega(i,1) = Omega(i,1)
      c  +(v(i+1,1)*Dsqrt(x(i+1)**2+1)-v(i-1,1)*Dsqrt(x(i-1)**2+1))
      c  /(2.0*dx)/d6
 
-		
+
 		else
 			go to 940
 		endif
-		
-940		continue		
 
-*	Upper 
+940		continue
+
+*	Upper
 		j=My+2
 		Omega(i,My+2) = 0.0
 		Psi(i,My+2) = (x(i)+A)*(y(j)-1)
@@ -688,11 +695,11 @@
 	do 88 j = 2,My+1
 		If(j.gt.IBL) go to 90
                 Omega(i,j) = Omega(i+1,j)
-		Psi(i,j) = Psi(i+1,j) 
+		Psi(i,j) = Psi(i+1,j)
 		u(i,j) = u(i+1,j)
 		v(i,j) = v(i+1,j)
 		go to 88
-		
+
 90		Omega(i,j) = 0.0
 		Psi(i,j) = (x(i)+A)*(y(j)-1)
 		u(i,j) = (x(i)+A)/DM(i,j)
@@ -703,11 +710,11 @@
 	do 89 j = 2,My+1
 		If(j.gt.IBL) go to 91
                 Omega(i,j) = Omega(i-1,j)
-		Psi(i,j) = Psi(i-1,j) 
+		Psi(i,j) = Psi(i-1,j)
 		u(i,j) = u(i-1,j)
 		v(i,j) = v(i-1,j)
 		go to 89
-		
+
 91		Omega(i,j) = 0.0
 		Psi(i,j) = (x(i)+A)*(y(j)-1)
 		u(i,j) = (x(i)+A)/DM(i,j)
@@ -723,6 +730,20 @@
 	do 110 j = 2,My+1
 		call UCalc(Nx,My,i,j,dy2,Psi,u,DM)
 		call VCalc(Nx,My,i,j,dx2,Psi,v,DM)
+		if (i == 4 .And. j == 4) then
+			minu = minval(u)
+			maxu = maxval(u)
+			minv = minval(v)
+			maxv = maxval(v)
+		endif
+		currentminu = minval(u)
+		currentmaxu = maxval(u)
+		currentminv = minval(v)
+		currentmaxv = maxval(v)
+		minu = min(minu, currentminu)
+		maxu = max(maxu, currentmaxu)
+		minv = min(minv, currentminv)
+		maxv = max(maxv, currentmaxv)
 110	continue
 100	continue
 !$OMP END DO
@@ -748,7 +769,7 @@
 *	Output iterations and tolerances
 ***********************************************************************
 
-	
+
 *	Modifies filename for IDW
 ***********************************************************************
 	tic=tic+1
@@ -756,13 +777,13 @@
 		if(k.ne.Ot) then
 		tic=0
 		ct=ct+1
-	
+
 * NOTE:	following line clears the mess currently stored in the string
 
 		string = '                                             '
-		
+
 		call btd(ct,string,3,rcc)
-		
+
 		do 19 yy=2,4
 			pfile(LL+yy:)=string(yy-1:)
 19 			continue
@@ -770,21 +791,21 @@
 		outfile=pfile
 
 		flag=1
-		print *,''		
+		print *,''
 		endif
 	endif
 
 	if (flag .eq. 1) goto 4000
-	
+
 690	flag=0
 
 
-		
-*	print*,'OmTol=',OmTol,'PsiTol =', PsiTol
-***********************************************************************	
-	
 
-	if (k.lt.Ot) then	                                       
+*	print*,'OmTol=',OmTol,'PsiTol =', PsiTol
+***********************************************************************
+
+
+	if (k.lt.Ot) then
 	    if (k.eq.kerr) then
 	    	call FDATE(STRNG)
 			print *,k,Kpsi,OmTol,PsiTol,kerr,' ',STRNG
@@ -796,10 +817,10 @@
 	endif
 	outfile=filename
 	print *,'Writing output file'
-	
-	
+
+
 *	Write results to file
-***********************************************************************    
+***********************************************************************
 
 4000	open(unit=2,file=outfile,status='new')
 
@@ -837,14 +858,18 @@
 	OutDP(12) = A
 	OutDP(13) = freq
 	OutDP(14) = c0
+	OutDP(15) = minu
+	OutDP(16) = maxu
+	OutDP(17) = minv
+	OutDP(18) = maxv
 
 
 	write (2,form1) OutIN
 	write (2,form) OutDP
-	
+
 	call FDATE(STRNG)
 	print*,STRNG
-	
+
 	if (flag .eq. 1) goto 690
 
 
@@ -861,7 +886,7 @@
 ***********************************************************************
 *	Finite difference approximation for vorticity
 ***********************************************************************
-*	
+*
 *
 *
 *
@@ -877,8 +902,8 @@
 !$OMP DO
 	do 80 i = 2,Nx+1
 		do 90 j = 2,My+1
-		
-	Omega(i,j) = Omega0(i,j)*(1-alpha/DM2(i,j)) + 
+
+	Omega(i,j) = Omega0(i,j)*(1-alpha/DM2(i,j)) +
      c	Omega0(i+1,j)*(-Cx2*u(i+1,j)*DM(i+1,j) + alphaX)/DM2(i,j) +
      c	Omega0(i-1,j)*( Cx2*u(i-1,j)*DM(i-1,j) + alphaX)/DM2(i,j) +
      c	Omega0(i,j+1)*(-Cy2*v(i,j+1)*DM(i,j+1) + alphaY)/DM2(i,j) +
@@ -887,7 +912,7 @@
 90		continue
 80	continue
 !$OMP END DO
-!$OMP END PARALLEL  
+!$OMP END PARALLEL
 
 	end
 
@@ -905,7 +930,7 @@
 	double precision Omega(Nx+2,My+2),Psi(Nx+2,My+2),Psi0(Nx+2,My+2),
      c	Kappa2,KappaA,dxx,Tol,PsiTol,Psi1m,Psi0m,x(Nx+2),y(My+2),
      c	DM2(Nx+2,My+2)
-   
+
 
 
 
@@ -917,7 +942,7 @@
 	kPsi = kPsi+1
 	Psi0m = Psi1m
 	Psi1m = 0
-	
+
 !$OMP PARALLEL
 !$OMP DO
 	do 20 n = 1,Nx+2
@@ -930,11 +955,11 @@
 !$OMP DO
 	do 40 i = 2,Nx+1
 	do 50 j = My+1,2,-1
-	
+
 	Psi(i,j) = KappaA*(dxx*Omega(i,j)*DM2(i,j) + Psi0(i+1,j) +
      c	Psi0(i-1,j) + Kappa2*(Psi0(i,j+1) + Psi0(i,j-1)))
 
-	
+
 	if (abs(Psi(i,j)-Psi0(i,j)) .gt. Psi1m) then
 		Psi1m = abs(Psi(i,j)-Psi0(i,j))
 	endif
@@ -959,7 +984,7 @@
 	integer Nx,My,i,j
 	double precision Psi(Nx+2,My+2),u(Nx+2,My+2)
 	double precision dy2,DM(Nx+2,My+2)
-	
+
 	u(i,j) = (Psi(i,j+1)-Psi(i,j-1))/(dy2)/DM(i,j)
 
 	end
@@ -971,7 +996,7 @@
 	integer Nx,My,i,j
 	double precision Psi(Nx+2,My+2),v(Nx+2,My+2)
 	double precision dx2,DM(Nx+2,My+2)
-	
+
 	v(i,j) = -(Psi(i+1,j)-Psi(i-1,j))/(dx2)/DM(i,j)
 
 	end
@@ -984,7 +1009,7 @@
 	integer N, i
 	double precision min, max, dX, x(N)
 
-	
+
 	dX = abs(max-min)/(N-1)
 	x(1) = min
 	x(N) = max
@@ -1027,26 +1052,26 @@
 1	continue
 	length=0
 	return
-	
+
 	end
-	
-	
-*	Converts count to string for IDW 
+
+
+*	Converts count to string for IDW
 *	Code adapted from Michael Kupferschmid
 ***********************************************************************
 
 	subroutine btd(ct, string, ls, rc)
 	character(len=1) string(LS)
 	integer rc,ct
-	
+
 	character(len=10), save ::
      c	numerl(10) = ['0','1','2','3','4','5','6','7','8','9']
-	
+
 	rc=1
 	if (ls .le. 0) return
 
 
-*	convert the abs val of the number and place it in string	
+*	convert the abs val of the number and place it in string
 
 	m=iabs(ct)
 	do 1 k=ls,1,-1
@@ -1059,27 +1084,27 @@
 	if (m .ne. 0) return
 
 *	blank out extra zeros (from th e left)
-	
+
 	do 2 k=1,ls
 		kfnb=k
 		if (string(k) .ne. '0') goto 3
 		string(k)='0'
 2	continue
-	
+
 *	if th string is alll 0s make put the last one back
 
 	string(ls)='0'
-	
+
 *	put in a negative sign if the number is <0
 
 3	if (n .lt. 0 .and. kfnb .eq. 1) return
 	if (n .lt. 0) string(kfnb-1)='-'
 	rc=0
-	
+
 	return
-	
+
 	end
-	
-	
+
+
 
 

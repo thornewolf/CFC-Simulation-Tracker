@@ -3,7 +3,27 @@ import json
 import datetime
 
 class SimulationRun:
+    '''
+    A large dataclass designed to assist in moving all information pertaining
+    to a single simulation run around.  Offsers a large set of utility
+    functions for ease of development.
+    '''
     def __init__(self, *args, inline=False, as_json=None, **kwargs):
+        '''
+        Initialize the class.
+
+        Args:
+            *args: inline arguments to be passed directly into a
+            SimulationRunConfig object.
+            inline: indicate whether *args is fully complete and should be
+            passed down to SimulationRunConfig.
+            as_json: An optional json String to load the configuration for
+            the run from.
+            **kwargs: keywork arguments to be passed to SimulationRunConfig.
+
+        Returns:
+            Implicitly returns the class.
+        '''
         if inline:
             self.config = SimulationRunConfig(*args, **kwargs)
         elif as_json:
@@ -35,14 +55,19 @@ class SimulationRun:
             'tolerance': self.config.tolerance,
             'bcs': self.config.bcs,
             'continued_run': self.config.continued_run,
+            'time_steps': self.config.time_steps,
             'additional_steps': self.config.additional_steps,
             'time_between_reports': self.config.time_between_reports,
             'iterations_between_writes': self.config.iterations_between_writes,
-            'completion_time': self.config.completion_time
+            'completion_time': self.config.completion_time,
+            'sim_type': self.config.sim_type
         }, indent=1)
 
     @property
     def name(self):
+        '''
+        Allows for runs to handle the formatting in which they should be named.
+        '''
         ans = ''
         if self.config.continued_run is not None:
             ans = f'Run{self.config.id}_JetA{self.config.jet_amp}_JetF{self.config.jet_freq}'
@@ -54,6 +79,11 @@ class SimulationRun:
     
     @property
     def runtime(self):
+        '''
+        Calculate total runtime
+        '''
+        # TODO: time since creation is not runtime. It should be time since
+        # start. Need additional data within the config.
         if self.config.completion_time is None:
             d = datetime.datetime.now() - self.datetime_created
         else:
@@ -67,6 +97,10 @@ class SimulationRun:
     @property
     def datetime_completed(self):
         return datetime.datetime.fromisoformat(self.config.completion_time)
+
+    @property
+    def sim_type(self):
+        return self.config.sim_type
 
 @dataclass
 class SimulationRunConfig:
@@ -85,16 +119,9 @@ class SimulationRunConfig:
     tolerance: float = None
     bcs: int = None
     continued_run: str = None
+    time_steps: int = 1000
     additional_steps: int = 1000
     time_between_reports: int = 100
     iterations_between_writes: int = 500
     completion_time: datetime.datetime = None
-
-'''
-print(SimulationRun(None, "COMPLETED", datetime.datetime.now(), 2100, 299, 399, 120, 130, 0.001, 0.007, 1.8, 1e-3, 1e-5, 20, inline=True).config)
-print(SimulationRun(inline=True).config)
-run = SimulationRun(None, "COMPLETED", datetime.datetime.now(), 2100, 299, 399, 120, 130, 0.001, 0.007, 1.8, 1e-3, 1e-5, 20, inline=True)
-print(run.json)
-print(SimulationRun(as_json=run.json).json)
-print(SimulationRun(as_json='{"jet_end": 10}').json)
-'''
+    sim_type: str = None
