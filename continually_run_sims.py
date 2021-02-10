@@ -17,9 +17,8 @@ def main():
         
         # Simulations that were not completed markes as CANCELLED/FAILED and runtime stopped
         runs = getAllSimulationRuns() 
-        for x in runs:
-            run = runs[x]
-            if run.config.status != ['COMPLETED','QUEUED','FINISHED_WITH_FAILURES']:
+        for run in runs:
+            if run.config.status not in ['CANCELLED/FAILED','COMPLETED','QUEUED','FINISHED_WITH_FAILURES']:
                 run.config.status = 'CANCELLED/FAILED'
                 run.config.completion_time = str(datetime.datetime.now())
                 updateRunInDatabase(run)

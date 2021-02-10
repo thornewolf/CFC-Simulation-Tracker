@@ -263,6 +263,16 @@ def pipeline(run):
         stdin, filename = generateSimulationStdinCont(run, logger=logger)
     elif run.config.sim_type == 'new':
         stdin, filename = generateSimulationStdinNovel(run, logger=logger)
+    else:
+        logger.error("Invalid simulation type provided, ending run")
+        run.config.status = 'FINISHED_WITH_FAILURES'
+        run = getSimulationRunById(run.config.id)
+        run.config.completion_time = str(datetime.datetime.now())
+        updateRunInDatabase(run)
+        logger.info(f'Finished run {run.config.id}')
+        return
+
+
     root = os.getcwd()
     BIN_NAME = 'PFI_fast.out'
     path = os.path.join(root, BIN_NAME)
@@ -281,9 +291,16 @@ def pipeline(run):
     for _ in range(5):
         p = runExecutableWithStdIn(['octave-cli', os.path.join(root, f'Visualize_multiprocess.m')], vizInputs)
         ps.append(p)
+    logger.info(f'Running {len(ps)} concurrently.')
+    logger.info(ps)
 
-    for p in ps:
-        ProcessWatcher(run, p, ["IMAGE_GENERATION", "COMPLETED"])
+    pws = []
+    for p in ps[::-1]:
+        pw = ProcessWatcher(run, p, ["IMAGE_GENERATION", "COMPLETED"], blocking=False)
+        pws.append(pw)
+    for pw in pws:
+        while not pw.done:
+            time.sleep(1)
 
     logger.info(f"Completed image generating step")
 

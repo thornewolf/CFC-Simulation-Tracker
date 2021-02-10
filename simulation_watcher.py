@@ -1,4 +1,5 @@
 import time
+import threading
 import logging
 from db import addSimulationRunToDatabase, updateRunStatusById
 
@@ -7,7 +8,7 @@ class ProcessWatcher:
     Keeps track of the state of a run and will post updates on it. Recognizes when the process has
     begun and when it has ended.
     '''
-    def __init__(self, run, run_process, stages):
+    def __init__(self, run, run_process, stages, blocking=True):
         '''
         Initialize the class.
 
@@ -24,7 +25,17 @@ class ProcessWatcher:
         self.run_process = run_process
         self.log = []
         self.stages = stages
-        self.begin_watching()
+        self.thread = None
+        if blocking:
+            self.begin_watching()
+        else:
+            t = threading.Thread(group=None, target=self.begin_watching)
+            t.start()
+            self.thread = t
+
+    @property
+    def done(self):
+        return not self.thread.is_alive()
 
     def begin_watching(self):
         updateRunStatusById(self.run.config.id, self.stages[0])
