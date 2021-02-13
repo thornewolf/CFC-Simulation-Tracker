@@ -20,6 +20,7 @@ def images_to_video(base_name: str):
     root = os.getcwd()
     failure_count = 0
     for part in ['A', 'B', 'C']:
+      img_array = []
       matching_files = glob.glob(f'{base_name}*{part}.jpg')
       logger.info(f'Found {len(matching_files)} files corresponding to {base_name}.\n e.g. {matching_files[:1]}')
       matching_file_numbers = [int(f.split('_')[-2]) for f in matching_files]
